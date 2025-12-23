@@ -254,33 +254,26 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       {message && (
         <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-[9999] w-max max-w-[180px] animate-[fade-in-up_0.3s_ease-out] animate-float pointer-events-none">
           <div className={clsx(
-            "relative px-4 py-2.5 rounded-2xl rounded-bl-sm shadow-2xl font-semibold text-xs break-words",
+            // No speech-tail triangle; use corner style to distinguish instead
+            "relative px-4 py-2.5 rounded-2xl shadow-2xl font-semibold text-xs break-words",
             "backdrop-blur-md border-2",
-            player === 'X'
-              ? "bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white border-indigo-300/90 shadow-indigo-500/50 saturate-125"
-              : "bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white border-emerald-300/90 shadow-emerald-500/50 saturate-125"
+            isMe
+              ? "rounded-tr-sm bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white border-indigo-300/90 shadow-indigo-500/50 saturate-125"
+              : "rounded-tl-sm bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white border-emerald-200/90 shadow-cyan-500/50 saturate-125"
           )}>
             {/* Glow effect */}
             <div className={clsx(
-              "absolute inset-0 rounded-2xl rounded-bl-sm blur-sm opacity-50 -z-10",
-              player === 'X' ? "bg-indigo-500" : "bg-emerald-500"
+              "absolute inset-0 rounded-2xl blur-sm opacity-50 -z-10",
+              isMe ? "bg-indigo-500" : "bg-cyan-500"
             )}></div>
             
             {/* Message content */}
             <div className="relative z-10 leading-relaxed">{message}</div>
             
-            {/* Speech bubble tail */}
-            <div className={clsx(
-              "absolute bottom-[-8px] left-4 w-0 h-0",
-              player === 'X'
-                ? "border-l-[8px] border-l-transparent border-t-[8px] border-t-indigo-600 border-r-[8px] border-r-transparent"
-                : "border-l-[8px] border-l-transparent border-t-[8px] border-t-emerald-600 border-r-[8px] border-r-transparent"
-            )}></div>
-            
             {/* Animated pulse ring */}
             <div className={clsx(
-              "absolute inset-0 rounded-2xl rounded-bl-sm animate-ping opacity-20",
-              player === 'X' ? "bg-indigo-400" : "bg-emerald-400"
+              "absolute inset-0 rounded-2xl animate-ping opacity-20",
+              isMe ? "bg-indigo-400" : "bg-cyan-400"
             )}></div>
           </div>
         </div>
