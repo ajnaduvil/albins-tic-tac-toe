@@ -25,7 +25,7 @@ interface GameBoardProps {
   onSendChat: (text: string) => void;
 }
 
-const EMOJIS = ['😂', '😎', '😡', '😭', '🤔', '👋', '🖕'];
+const EMOJIS = ['😂', '😎', '😡', '😭', '🤔', '👋', '🖕', '😉'];
 
 const LIVE_EMOJI_MAP = {
   '😂': 'FaceWithTearsOfJoy',
@@ -35,6 +35,7 @@ const LIVE_EMOJI_MAP = {
   '🤔': 'ThinkingFace',
   '👋': 'WavingHand',
   '🖕': 'MiddleFinger',
+  '😉': 'WinkingFace',
 } satisfies Record<(typeof EMOJIS)[number], keyof typeof emojiData>;
 
 // Plain unicode emoji (for the emoji bar; non-distracting)
