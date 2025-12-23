@@ -88,4 +88,6 @@ PRs and issues are welcome. If you’re proposing a bigger change, open an issue
 
 ## License
 
-No license is included yet. If you’re publishing this publicly, consider adding a `LICENSE` file (MIT/Apache-2.0/etc.).
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2024 Albin
