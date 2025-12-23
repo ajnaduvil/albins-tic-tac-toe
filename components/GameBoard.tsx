@@ -308,28 +308,34 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       {/* Latest Chat Bubble - Fancy Design */}
       {message && (
         <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-[9999] w-max max-w-[180px] animate-[fade-in-up_0.3s_ease-out] animate-float pointer-events-none">
-          <div className={clsx(
-            // No speech-tail triangle; use corner style to distinguish instead
-            "relative px-4 py-2.5 rounded-2xl shadow-2xl font-semibold text-xs break-words",
-            "backdrop-blur-md border-2",
-            isMe
-              ? "rounded-tr-sm bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white border-indigo-300/90 shadow-indigo-500/50 saturate-125"
-              : "rounded-tl-sm bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white border-emerald-200/90 shadow-cyan-500/50 saturate-125"
-          )}>
-            {/* Glow effect */}
-            <div className={clsx(
-              "absolute inset-0 rounded-2xl blur-sm opacity-50 -z-10",
-              isMe ? "bg-indigo-500" : "bg-cyan-500"
-            )}></div>
-            
-            {/* Message content */}
-            <div className="relative z-10 leading-relaxed">{message}</div>
-            
-            {/* Animated pulse ring */}
-            <div className={clsx(
-              "absolute inset-0 rounded-2xl animate-ping opacity-20",
-              isMe ? "bg-indigo-400" : "bg-cyan-400"
-            )}></div>
+          <div className="relative">
+            {/* Soft aura */}
+            <div
+              className={clsx(
+                "absolute -inset-1 rounded-2xl blur-lg opacity-60",
+                isMe
+                  ? "bg-gradient-to-br from-indigo-500/70 via-purple-500/60 to-fuchsia-500/50"
+                  : "bg-gradient-to-br from-emerald-500/70 via-teal-500/60 to-cyan-500/50"
+              )}
+            />
+
+            {/* Gradient border */}
+            <div
+              className={clsx(
+                "relative rounded-2xl p-[1.5px]",
+                isMe
+                  ? "bg-gradient-to-br from-indigo-300/90 via-purple-300/80 to-fuchsia-300/70"
+                  : "bg-gradient-to-br from-emerald-300/90 via-teal-300/80 to-cyan-300/70"
+              )}
+            >
+              {/* Glass body */}
+              <div className="relative rounded-2xl bg-slate-950/70 backdrop-blur-md border border-white/10 px-4 py-2.5 shadow-2xl">
+                {/* Message */}
+                <div className="text-xs font-semibold text-white/95 leading-snug break-words">
+                  {message}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
