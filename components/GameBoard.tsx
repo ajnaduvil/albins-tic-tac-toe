@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, GameState, Player } from '../types';
-import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2 } from 'lucide-react';
+import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2, Github } from 'lucide-react';
 import clsx from 'clsx';
 import confetti from 'canvas-confetti';
 
@@ -274,6 +274,16 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Goal</span>
                  <span className="text-xs font-bold text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">{winCondition} in a row</span>
             </div>
+            <a 
+              href="https://github.com/ajnaduvil/albins-tic-tac-toe" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-2 bg-slate-700/50 hover:bg-slate-600/50 text-slate-400 hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-600"
+              title="View on GitHub"
+              aria-label="View source code on GitHub"
+            >
+              <Github className="w-4 h-4" />
+            </a>
             <button onClick={onLeave} className="p-2 bg-slate-700/50 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/30">
                <LogOut className="w-4 h-4" />
             </button>

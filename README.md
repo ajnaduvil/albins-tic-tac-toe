@@ -4,8 +4,10 @@
   <h1>Albin's Tic Tac Toe</h1>
   <p>Real-time, peer-to-peer Tic Tac Toe — create a room, share a 3-digit code, and play instantly.</p>
 
-  <!-- Add a live demo link if you have one -->
-  <!-- <p><a href="https://YOUR_APP_URL">Live demo</a></p> -->
+  <p>
+    <a href="https://albins-tic-tac-toe.vercel.app/">🌐 Live Demo</a> • 
+    <a href="https://github.com/ajnaduvil/albins-tic-tac-toe">📦 GitHub</a>
+  </p>
 </div>
 
 ## About

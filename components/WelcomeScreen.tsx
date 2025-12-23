@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Gamepad2, Users, User, Grid3x3, Grid, LayoutGrid, Trophy, Check, Delete } from 'lucide-react';
+import { Gamepad2, Users, User, Grid3x3, Grid, LayoutGrid, Trophy, Check, Delete, Github } from 'lucide-react';
 import clsx from 'clsx';
 
 interface WelcomeScreenProps {
@@ -70,6 +70,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
           <Gamepad2 className="w-8 h-8 text-indigo-400" />
           Albin's Tic Tac Toe
         </h1>
+        <a 
+          href="https://github.com/ajnaduvil/albins-tic-tac-toe" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-indigo-400 transition-colors"
+          title="View source code on GitHub"
+        >
+          <Github className="w-3.5 h-3.5" />
+          <span>View on GitHub</span>
+        </a>
       </div>
 
       <div className="bg-slate-800/50 backdrop-blur-xl p-6 rounded-3xl border border-slate-700 shadow-2xl">
