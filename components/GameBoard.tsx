@@ -25,7 +25,7 @@ interface GameBoardProps {
   onSendChat: (text: string) => void;
 }
 
-const EMOJIS = ['😂', '😎', '😡', '😭', '🤔', '👋', '🖕', '😉'];
+const EMOJIS = ['😂', '😎', '😡', '😭', '🤔', '👋', '🖕', '😉', '🍌', '👌'];
 
 const LIVE_EMOJI_MAP = {
   '😂': 'FaceWithTearsOfJoy',
@@ -36,6 +36,8 @@ const LIVE_EMOJI_MAP = {
   '👋': 'WavingHand',
   '🖕': 'MiddleFinger',
   '😉': 'WinkingFace',
+  '🍌': 'Banana',
+  '👌': 'OkHand',
 } satisfies Record<(typeof EMOJIS)[number], keyof typeof emojiData>;
 
 // Plain unicode emoji (for the emoji bar; non-distracting)
@@ -217,8 +219,16 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     };
   }, [isChatOpen]);
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(roomCode);
+  const [copied, setCopied] = useState(false);
+  
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   const playNudgeFeedback = async (kind: 'send' | 'receive') => {
@@ -393,9 +403,20 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       <div className="relative z-20 w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-2.5 sm:p-3 rounded-xl border border-slate-700 shadow-xl">
         <div className="flex flex-col">
           <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-0.5">Room Code</span>
-          <div className="flex items-center gap-2 group cursor-pointer" onClick={copyCode}>
+          <div className="flex items-center gap-2 group">
             <span className="text-xl font-mono font-bold text-white tracking-widest group-hover:text-indigo-400 transition-colors">{roomCode}</span>
-            <Copy className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+            <button
+              onClick={copyCode}
+              className={clsx(
+                "p-1.5 rounded-lg transition-all",
+                copied 
+                  ? "bg-emerald-500/20 text-emerald-400" 
+                  : "text-slate-500 hover:text-indigo-400 hover:bg-slate-700/50"
+              )}
+              title={copied ? "Copied!" : "Copy room code"}
+            >
+              <Copy className={clsx("w-3.5 h-3.5 transition-transform", copied && "scale-110")} />
+            </button>
           </div>
         </div>
         
@@ -590,7 +611,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 {chatMessages.length === 0 ? (
                   <div className="text-xs text-slate-500 text-center py-8">
                     <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <div>No messages yet. Say hi!</div>
+                    <div>No messages yet.</div>
                   </div>
                 ) : (
                   chatMessages.map((m) => {
