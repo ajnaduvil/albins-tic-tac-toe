@@ -37,8 +37,13 @@ const LIVE_EMOJI_MAP = {
   '🖕': 'MiddleFinger',
 } satisfies Record<(typeof EMOJIS)[number], keyof typeof emojiData>;
 
-// Helper to render emoji with animation (LiveEmoji; fallback to Unicode)
-const renderEmoji = (emoji: string | null, size: number = 40) => {
+// Plain unicode emoji (for the emoji bar; non-distracting)
+const renderUnicodeEmoji = (emoji: string, size: number = 22) => (
+  <span style={{ fontSize: `${size}px`, lineHeight: 1 }}>{emoji}</span>
+);
+
+// Animated emoji (only for the "selected/sent" overlay above avatars)
+const renderAnimatedEmoji = (emoji: string | null, size: number = 40) => {
   if (!emoji) return null;
   const liveIcon = (LIVE_EMOJI_MAP as Record<string, keyof typeof emojiData | undefined>)[emoji];
 
@@ -57,14 +62,8 @@ const renderEmoji = (emoji: string | null, size: number = 40) => {
     );
   }
 
-  return (
-    <span 
-      className="inline-block transition-transform duration-150 hover:scale-110"
-      style={{ fontSize: `${size}px`, lineHeight: 1 }}
-    >
-      {emoji}
-    </span>
-  );
+  // If we don't have an animated asset, fall back to unicode
+  return renderUnicodeEmoji(emoji, size);
 };
 const DEFAULT_PRESETS = ['Nice move!', 'GG', 'Unlucky', 'Rematch?', 'Hurry up!'];
 
@@ -247,7 +246,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       {/* Emoji Overlay */}
       {emoji && (
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 animate-[bounce_1s_infinite] z-[9998] pointer-events-none">
-          {renderEmoji(emoji, 64)}
+          {renderAnimatedEmoji(emoji, 64)}
         </div>
       )}
 
@@ -447,7 +446,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-slate-700 rounded-full transition-all hover:scale-110 active:scale-95"
                     title={emoji}
                 >
-                    {renderEmoji(emoji, 22)}
+                    {renderUnicodeEmoji(emoji, 18)}
                 </button>
             ))}
         </div>
