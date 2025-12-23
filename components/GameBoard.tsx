@@ -245,7 +245,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       
       {/* Emoji Overlay */}
       {emoji && (
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 animate-[bounce_1s_infinite] z-[9998] pointer-events-none">
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
           {renderAnimatedEmoji(emoji, 64)}
         </div>
       )}
