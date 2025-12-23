@@ -135,8 +135,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       for (let i = 0; i < board.length; i++) {
         if (prevBoardRef.current[i] === null && board[i] !== null) {
           setLastMoveIndex(i);
-          // Clear highlight after 2 seconds
-          setTimeout(() => setLastMoveIndex(null), 2000);
+          // Clear highlight after 10 seconds
+          setTimeout(() => setLastMoveIndex(null), 10000);
           break;
         }
       }
