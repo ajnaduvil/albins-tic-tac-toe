@@ -77,9 +77,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
       
       {/* Header */}
       <div className="text-center space-y-1.5 sm:space-y-2 mb-1 sm:mb-2">
-        <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300 tracking-tight flex items-center justify-center gap-3">
+        <h1 className="text-3xl font-black tracking-tight flex items-center justify-center gap-3">
           <Gamepad2 className="w-8 h-8 text-indigo-400" />
-          Albin's Tic Tac Toe
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">
+            Albin's Tic Tac Toe
+          </span>
+          <span className="text-[10px] font-semibold text-slate-400/60 tracking-normal translate-y-[2px] select-none">
+            v{__APP_VERSION__}
+          </span>
         </h1>
         <a 
           href="https://github.com/ajnaduvil/albins-tic-tac-toe" 
