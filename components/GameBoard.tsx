@@ -448,7 +448,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 <div ref={chatEndRef} />
               </div>
 
-              <div className="px-3 pb-3">
+              <div className="px-3 pb-3 overflow-x-hidden">
                 <div className="max-h-24 overflow-y-auto mb-3 pr-1">
                   <div className="grid grid-cols-2 gap-2">
                     {presets.map((msg, idx) => (
@@ -475,35 +475,34 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   </div>
                 </div>
 
-                <form onSubmit={e => { e.preventDefault(); handleSendChat(chatInput); }} className="flex gap-2">
+                <form onSubmit={e => { e.preventDefault(); handleSendChat(chatInput); }} className="flex gap-1.5 items-center w-full min-w-0">
                   <input 
                     ref={chatInputRef}
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
                     placeholder="Type a message…"
-                    className="flex-1 bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="flex-1 min-w-0 bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                     maxLength={50}
                   />
                   <button 
                     type="submit"
                     disabled={!chatInput.trim()}
-                    className="p-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shadow-lg shadow-indigo-600/20 shrink-0"
+                    className="p-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shadow-lg shadow-indigo-600/20 flex-shrink-0"
                     aria-label="Send message"
                     title="Send message"
                   >
                     <Send className="w-5 h-5" />
                   </button>
-                  {chatInput.trim() && !presets.includes(chatInput.trim()) && (
-                    <button 
-                      type="button" 
-                      onClick={addPreset}
-                      className="p-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors shrink-0"
-                      title="Save as preset"
-                      aria-label="Save as preset"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  )}
+                  <button 
+                    type="button" 
+                    onClick={addPreset}
+                    disabled={!chatInput.trim() || presets.includes(chatInput.trim())}
+                    className="p-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                    title={!chatInput.trim() ? "Type a message to save as preset" : presets.includes(chatInput.trim()) ? "Already saved as preset" : "Save as preset"}
+                    aria-label="Save as preset"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
                 </form>
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-[10px] text-slate-500">Press Enter to send. Max 50 chars. Use + to save.</p>
