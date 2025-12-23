@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Gamepad2, Users, User, Grid3x3, Grid, LayoutGrid, Trophy, Check } from 'lucide-react';
+import { Gamepad2, Users, User, Grid3x3, Grid, LayoutGrid, Trophy, Check, Delete } from 'lucide-react';
 import clsx from 'clsx';
 
 interface WelcomeScreenProps {
@@ -178,26 +178,102 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
         {/* Join Tab Content */}
         {activeTab === 'join' && (
           <form onSubmit={handleJoin} className="space-y-5 animate-fade-in">
-            <div className="space-y-1.5">
+            <div className="space-y-3">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Room Code</label>
+              
+              {/* Code Display */}
               <div className="relative group">
                 <Gamepad2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors" />
-                <input
-                  type="number"
-                  value={roomCode}
-                  onChange={(e) => setRoomCode(e.target.value)}
-                  placeholder="e.g. 123"
-                  className="w-full bg-slate-900/50 border border-slate-700 focus:border-emerald-500 rounded-xl py-3.5 pl-12 pr-4 text-slate-100 placeholder:text-slate-600 focus:outline-none transition-all font-mono tracking-wider text-lg"
-                  maxLength={4}
-                  required
-                />
+                <div className="w-full bg-slate-900/50 border-2 border-slate-700 focus-within:border-emerald-500 rounded-xl py-4 pl-12 pr-4 text-slate-100 font-mono tracking-[0.3em] text-2xl text-center min-h-[60px] flex items-center justify-center">
+                  {roomCode.padEnd(3, '•').split('').map((char, idx) => (
+                    <span key={idx} className={clsx(
+                      "inline-block w-8",
+                      idx < roomCode.length ? "text-emerald-400" : "text-slate-600"
+                    )}>
+                      {char}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <p className="text-xs text-slate-500 ml-1">Ask your friend for the code shown in their room.</p>
+
+              {/* Numeric Keypad */}
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => {
+                      if (roomCode.length < 3) {
+                        setRoomCode(roomCode + num.toString());
+                      }
+                    }}
+                    disabled={roomCode.length >= 3}
+                    className={clsx(
+                      "py-4 rounded-xl border-2 font-bold text-lg transition-all",
+                      "bg-slate-800/50 border-slate-700 text-slate-200",
+                      "hover:bg-emerald-600/20 hover:border-emerald-500/50 hover:text-emerald-300",
+                      "active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800/50 disabled:hover:border-slate-700"
+                    )}
+                  >
+                    {num}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (roomCode.length > 0) {
+                      setRoomCode(roomCode.slice(0, -1));
+                    }
+                  }}
+                  disabled={roomCode.length === 0}
+                  className={clsx(
+                    "py-4 rounded-xl border-2 font-bold transition-all",
+                    "bg-slate-800/50 border-slate-700 text-slate-400",
+                    "hover:bg-red-600/20 hover:border-red-500/50 hover:text-red-300",
+                    "active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800/50"
+                  )}
+                  aria-label="Delete"
+                >
+                  <Delete className="w-5 h-5 mx-auto" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (roomCode.length < 4) {
+                      setRoomCode(roomCode + '0');
+                    }
+                  }}
+                  disabled={roomCode.length >= 3}
+                  className={clsx(
+                    "py-4 rounded-xl border-2 font-bold text-lg transition-all",
+                    "bg-slate-800/50 border-slate-700 text-slate-200",
+                    "hover:bg-emerald-600/20 hover:border-emerald-500/50 hover:text-emerald-300",
+                    "active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800/50 disabled:hover:border-slate-700"
+                  )}
+                >
+                  0
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRoomCode('')}
+                  disabled={roomCode.length === 0}
+                  className={clsx(
+                    "py-4 rounded-xl border-2 font-bold text-sm transition-all",
+                    "bg-slate-800/50 border-slate-700 text-slate-400",
+                    "hover:bg-slate-700/50 hover:border-slate-600 hover:text-slate-300",
+                    "active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                  )}
+                >
+                  Clear
+                </button>
+              </div>
+              
+              <p className="text-xs text-slate-500 ml-1 text-center">Ask your friend for the code shown in their room.</p>
             </div>
 
             <button
               type="submit"
-              disabled={isConnecting || !name.trim() || !roomCode.trim()}
+              disabled={isConnecting || !name.trim() || roomCode.length !== 3}
               className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 mt-4"
             >
               {isConnecting ? 'Connecting...' : 'Join Game'}
