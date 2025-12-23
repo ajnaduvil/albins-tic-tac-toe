@@ -206,12 +206,38 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </div>
       )}
 
-      {/* Latest Chat Bubble */}
+      {/* Latest Chat Bubble - Fancy Design */}
       {message && (
-        <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-40 w-max max-w-[160px] animate-[fade-in-up_0.25s_ease-out] pointer-events-none">
-          <div className="bg-white text-slate-900 px-3 py-2 rounded-xl rounded-bl-none shadow-xl font-bold text-xs break-words relative">
-            {message}
-            <div className="absolute bottom-[-6px] left-2 w-0 h-0 border-l-[6px] border-l-transparent border-t-[6px] border-t-white border-r-[6px] border-r-transparent"></div>
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-[100] w-max max-w-[180px] animate-[fade-in-up_0.3s_ease-out] animate-float pointer-events-none">
+          <div className={clsx(
+            "relative px-4 py-2.5 rounded-2xl rounded-bl-sm shadow-2xl font-semibold text-xs break-words",
+            "backdrop-blur-md border-2",
+            isMe 
+              ? "bg-gradient-to-br from-indigo-500/90 via-indigo-600/90 to-purple-600/90 text-white border-indigo-400/50 shadow-indigo-500/30"
+              : "bg-gradient-to-br from-slate-700/90 via-slate-800/90 to-slate-900/90 text-slate-100 border-slate-600/50 shadow-slate-700/30"
+          )}>
+            {/* Glow effect */}
+            <div className={clsx(
+              "absolute inset-0 rounded-2xl rounded-bl-sm blur-sm opacity-50 -z-10",
+              isMe ? "bg-indigo-400" : "bg-slate-500"
+            )}></div>
+            
+            {/* Message content */}
+            <div className="relative z-10 leading-relaxed">{message}</div>
+            
+            {/* Speech bubble tail */}
+            <div className={clsx(
+              "absolute bottom-[-8px] left-4 w-0 h-0",
+              isMe 
+                ? "border-l-[8px] border-l-transparent border-t-[8px] border-t-indigo-500/90 border-r-[8px] border-r-transparent"
+                : "border-l-[8px] border-l-transparent border-t-[8px] border-t-slate-800/90 border-r-[8px] border-r-transparent"
+            )}></div>
+            
+            {/* Animated pulse ring */}
+            <div className={clsx(
+              "absolute inset-0 rounded-2xl rounded-bl-sm animate-ping opacity-20",
+              isMe ? "bg-indigo-400" : "bg-slate-400"
+            )}></div>
           </div>
         </div>
       )}
@@ -458,23 +484,24 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     className="flex-1 bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                     maxLength={50}
                   />
-                  {chatInput.trim() && !presets.includes(chatInput.trim()) ? (
+                  <button 
+                    type="submit"
+                    disabled={!chatInput.trim()}
+                    className="p-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shadow-lg shadow-indigo-600/20 shrink-0"
+                    aria-label="Send message"
+                    title="Send message"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                  {chatInput.trim() && !presets.includes(chatInput.trim()) && (
                     <button 
                       type="button" 
                       onClick={addPreset}
-                      className="p-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors"
+                      className="p-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors shrink-0"
                       title="Save as preset"
+                      aria-label="Save as preset"
                     >
                       <Plus className="w-5 h-5" />
-                    </button>
-                  ) : (
-                    <button 
-                      type="submit"
-                      disabled={!chatInput.trim()}
-                      className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      aria-label="Send message"
-                    >
-                      <Send className="w-5 h-5" />
                     </button>
                   )}
                 </form>
