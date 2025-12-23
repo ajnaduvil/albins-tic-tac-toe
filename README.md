@@ -1,20 +1,91 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <img width="1200" height="475" alt="Albin's Tic Tac Toe banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+
+  <h1>Albin's Tic Tac Toe</h1>
+  <p>Real-time, peer-to-peer Tic Tac Toe — create a room, share a 3-digit code, and play instantly.</p>
+
+  <!-- Add a live demo link if you have one -->
+  <!-- <p><a href="https://YOUR_APP_URL">Live demo</a></p> -->
 </div>
 
-# Run and deploy your AI Studio app
+## About
 
-This contains everything you need to run your app locally.
+This is a **browser-based multiplayer Tic Tac Toe** game built with **React + TypeScript + Vite** and powered by **PeerJS (WebRTC)** for real-time, peer-to-peer gameplay.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1ctIGokDOPqeqRdpbugj3OqQ-6G7gg5kI
+No accounts, no backend: the host creates a room code, the other player joins, and the game state syncs directly between browsers.
 
-## Run Locally
+## Features
 
-**Prerequisites:**  Node.js
+- **P2P real-time multiplayer** via WebRTC (PeerJS)
+- **Room codes** (3 digits) for quick sharing
+- **Custom board sizes**: 3×3 up to 6×6
+- **Custom win condition**: 3-in-a-row up to 6-in-a-row (bounded by grid size)
+- **Rematch flow + score tracking**
+- **In-game chat** (with saved quick-message presets)
+- **Emoji reactions** and a **“nudge”** (shake) button
+- **Confetti** when you win
 
+## How it works (quick)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- The host creates a room and gets a **3-digit code**.
+- Under the hood that code maps to a PeerJS peer id (see `hooks/usePeerGame.ts`).
+- Players connect via WebRTC; moves/chat/emotes are sent over the data channel.
+
+## Getting started (local dev)
+
+### Prerequisites
+
+- Node.js (recommended: **18+**)
+
+### Install
+
+```bash
+npm install
+```
+
+### Run
+
+```bash
+npm run dev
+```
+
+Vite runs on `http://localhost:3000` by default.
+
+### Build & preview
+
+```bash
+npm run build
+npm run preview
+```
+
+## Scripts
+
+- **`npm run dev`**: start dev server
+- **`npm run build`**: production build
+- **`npm run preview`**: preview the production build locally
+- **`npm run deploy`**: deploy to Vercel (`vercel --prod`)
+
+## Deploying
+
+### Vercel (recommended)
+
+- **Via Vercel UI**: import the repo and deploy as a Vite app (output: `dist`).
+- **Via CLI**:
+
+```bash
+npx vercel --prod
+```
+
+## Notes / limitations
+
+- **P2P connectivity varies by network**: some strict NAT/firewall setups may fail without a TURN server.
+- **Room codes are short**: treat them like “easy sharing”, not security.
+- **Privacy**: gameplay/chat data is sent peer-to-peer over WebRTC (encrypted transport), but signaling uses PeerJS infrastructure.
+
+## Contributing
+
+PRs and issues are welcome. If you’re proposing a bigger change, open an issue first so we can align on scope.
+
+## License
+
+No license is included yet. If you’re publishing this publicly, consider adding a `LICENSE` file (MIT/Apache-2.0/etc.).

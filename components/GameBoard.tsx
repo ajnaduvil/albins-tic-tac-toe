@@ -406,7 +406,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end" ref={chatWidgetRef}>
         {isChatOpen && (
           <div className="mb-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80">
-            <div className="bg-slate-800/95 backdrop-blur border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-slate-800/95 backdrop-blur border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ maxHeight: '70vh' }}>
               <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
@@ -423,7 +423,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               </div>
 
               {/* Chat Messages Section */}
-              <div className="p-3 max-h-[45vh] overflow-y-auto space-y-2 bg-slate-900/30">
+              <div className="p-3 flex-1 overflow-y-auto space-y-2 bg-slate-900/30" style={{ minHeight: 0 }}>
                 {chatMessages.length === 0 ? (
                   <div className="text-xs text-slate-500 text-center py-8">
                     <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -453,12 +453,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               </div>
 
               {/* Quick Replies Section - Separated */}
-              <div className="px-3 pt-3 pb-3 overflow-x-hidden border-t border-slate-700/50 bg-slate-800/20">
+              <div className="px-3 pt-3 pb-3 overflow-x-hidden border-t border-slate-700/50 bg-slate-800/20 flex-shrink-0">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-1 h-4 bg-indigo-500/50 rounded-full"></div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quick Replies</span>
                 </div>
-                <div className="max-h-24 overflow-y-auto mb-3 pr-1">
+                <div className="max-h-20 overflow-y-auto mb-3 pr-1">
                   <div className="grid grid-cols-2 gap-2">
                     {presets.map((msg, idx) => (
                       <div key={`${msg}-${idx}`} className="group flex gap-1 min-w-0">
