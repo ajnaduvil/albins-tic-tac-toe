@@ -78,10 +78,38 @@ npm run preview
 npx vercel --prod
 ```
 
+## TURN Server Setup (Optional but Recommended)
+
+For reliable connections across different networks (PC↔mobile, different locations), you can configure a TURN server. The app includes support for **Turnix.io** TURN servers.
+
+### Setup Steps
+
+1. **Get a Turnix.io API token**:
+   - Sign up at [Turnix.io](https://turnix.io/)
+   - Create a project and generate an API token (free tier: 10 GB/month)
+
+2. **Add environment variable in Vercel**:
+   - Go to your Vercel project → **Settings** → **Environment Variables**
+   - Add:
+     - **Name**: `TURNIX_API_TOKEN`
+     - **Value**: Your Turnix.io API token
+     - **Environment**: Production, Preview, Development (select all)
+
+3. **Redeploy**:
+   - The app will automatically fetch TURN credentials from your serverless function
+   - If TURN is unavailable, the app gracefully falls back to STUN-only
+
+### How it works
+
+- The app includes a Vercel serverless function (`api/get-turn-credentials.ts`) that securely fetches TURN credentials from Turnix.io
+- Your API token stays server-side (never exposed to clients)
+- TURN servers are fetched once on app load and included in WebRTC configuration
+- If TURN fetch fails, the app continues with STUN-only (graceful degradation)
+
 ## Notes / limitations
 
-- **P2P connectivity varies by network**: some strict NAT/firewall setups may fail without a TURN server.
-- **Room codes are short**: treat them like “easy sharing”, not security.
+- **P2P connectivity varies by network**: some strict NAT/firewall setups may fail without a TURN server. **Adding TURN (see above) resolves this**.
+- **Room codes are short**: treat them like "easy sharing", not security.
 - **Privacy**: gameplay/chat data is sent peer-to-peer over WebRTC (encrypted transport), but signaling uses PeerJS infrastructure.
 
 ## Contributing

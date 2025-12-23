@@ -11,15 +11,16 @@
     "deploy": "vercel --prod"
   },
   "dependencies": {
-    "react-dom": "^19.2.3",
-    "react": "^19.2.3",
+    "canvas-confetti": "1.9.2",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "peerjs": "^1.5.5",
-    "clsx": "^2.1.1",
-    "canvas-confetti": "1.9.2"
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@vercel/node": "^5.5.16",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

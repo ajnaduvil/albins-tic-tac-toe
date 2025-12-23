@@ -5,16 +5,12 @@ import { checkWinner, isDraw, getInitialGameState } from '../utils/gameLogic';
 
 const ID_PREFIX = 'peer-tac-toe-v4-public-'; // Bumped version to v4 to avoid cached/stale IDs on server
 
-const PEER_CONFIG: PeerOptions = {
-  debug: 2,
-  config: {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' },
-    ],
-  },
-};
+// Base STUN servers (always available as fallback)
+const BASE_STUN_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+];
 
 export const usePeerGame = () => {
   const [gameState, setGameState] = useState<GameState>(getInitialGameState());
@@ -35,6 +31,7 @@ export const usePeerGame = () => {
   
   const [starter, setStarter] = useState<Player>('X');
   const [isNudged, setIsNudged] = useState(false);
+  const [turnServers, setTurnServers] = useState<RTCIceServer[]>([]);
 
   const peerRef = useRef<Peer | null>(null);
   const connRef = useRef<DataConnection | null>(null);
@@ -198,6 +195,42 @@ export const usePeerGame = () => {
     setIsNudged(false);
   }, []);
 
+  // Fetch TURN credentials from our serverless function on mount
+  useEffect(() => {
+    const fetchTurnCredentials = async () => {
+      try {
+        const response = await fetch('/api/get-turn-credentials');
+        if (response.ok) {
+          const data = await response.json();
+          // Turnix returns { iceServers: [...] }
+          if (data.iceServers && Array.isArray(data.iceServers) && data.iceServers.length > 0) {
+            setTurnServers(data.iceServers);
+            console.log('TURN servers loaded:', data.iceServers.length);
+          } else {
+            console.log('No TURN servers available, using STUN only');
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to fetch TURN credentials, using STUN only:', error);
+      }
+    };
+    
+    fetchTurnCredentials();
+  }, []);
+
+  // Get peer config with current TURN servers
+  const getPeerConfig = useCallback((): PeerOptions => {
+    return {
+      debug: 2,
+      config: {
+        iceServers: [
+          ...BASE_STUN_SERVERS,
+          ...turnServers, // Add TURN servers if available
+        ],
+      },
+    };
+  }, [turnServers]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -224,7 +257,7 @@ export const usePeerGame = () => {
     setMyPlayer('X');
 
     try {
-      const peer = new Peer(fullId, PEER_CONFIG);
+      const peer = new Peer(fullId, getPeerConfig());
       peerRef.current = peer;
 
       peer.on('open', () => {
@@ -292,7 +325,7 @@ export const usePeerGame = () => {
       setConnectionStatus('error');
     }
 
-  }, [cleanup, handleData]);
+  }, [cleanup, handleData, getPeerConfig]);
 
   const joinRoom = useCallback((code: string, name: string) => {
     cleanup();
@@ -307,9 +340,9 @@ export const usePeerGame = () => {
 
     try {
       // Create Joiner Peer (random ID)
-      // IMPORTANT: PeerJS constructor is (id?, options?). Passing PEER_CONFIG as the first arg
+      // IMPORTANT: PeerJS constructor is (id?, options?). Passing config as the first arg
       // can be treated as an id string like "[object Object]" and prevent proper connection.
-      const peer = new Peer(undefined, PEER_CONFIG);
+      const peer = new Peer(undefined, getPeerConfig());
       peerRef.current = peer;
       
       // Global connection timeout
@@ -375,7 +408,7 @@ export const usePeerGame = () => {
       setErrorMessage("Failed to join room.");
       setConnectionStatus('error');
     }
-  }, [cleanup, handleData]);
+  }, [cleanup, handleData, getPeerConfig]);
 
   const makeMove = useCallback((index: number) => {
     if (gameState.status !== 'playing') return;
