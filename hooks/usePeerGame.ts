@@ -19,6 +19,7 @@ const PEER_CONFIG: PeerOptions = {
 export const usePeerGame = () => {
   const [gameState, setGameState] = useState<GameState>(getInitialGameState());
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
+  const connectionStatusRef = useRef<ConnectionStatus>('disconnected');
   const [myPlayer, setMyPlayer] = useState<Player | null>(null);
   const [roomCode, setRoomCode] = useState<string>('');
   const [isHost, setIsHost] = useState<boolean>(false);
@@ -41,6 +42,10 @@ export const usePeerGame = () => {
   const incomingEmojiTimeoutRef = useRef<number | null>(null);
   const myEmojiTimeoutRef = useRef<number | null>(null);
   const nudgeTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    connectionStatusRef.current = connectionStatus;
+  }, [connectionStatus]);
 
   const createId = useCallback(() => {
     // Prefer stable UUIDs when available (modern browsers)
@@ -302,19 +307,23 @@ export const usePeerGame = () => {
 
     try {
       // Create Joiner Peer (random ID)
-      const peer = new Peer(PEER_CONFIG);
+      // IMPORTANT: PeerJS constructor is (id?, options?). Passing PEER_CONFIG as the first arg
+      // can be treated as an id string like "[object Object]" and prevent proper connection.
+      const peer = new Peer(undefined, PEER_CONFIG);
       peerRef.current = peer;
       
       // Global connection timeout
       connectionTimeoutRef.current = window.setTimeout(() => {
-        if (connectionStatus !== 'connected') {
+        // Avoid stale closure by checking the ref
+        if (connectionStatusRef.current !== 'connected') {
           setErrorMessage("Connection timed out. Room might not exist or host is offline.");
           setConnectionStatus('error');
           // Don't full cleanup to allow retry on same screen if needed, but here we just show error
         }
       }, 10000); 
 
-      peer.on('open', () => {
+      peer.on('open', (id) => {
+        console.log('Joiner peer opened with id:', id);
         const destId = `${ID_PREFIX}${formattedCode}`;
         console.log('Attempting to connect to:', destId);
 
@@ -366,7 +375,7 @@ export const usePeerGame = () => {
       setErrorMessage("Failed to join room.");
       setConnectionStatus('error');
     }
-  }, [cleanup, handleData, connectionStatus]);
+  }, [cleanup, handleData]);
 
   const makeMove = useCallback((index: number) => {
     if (gameState.status !== 'playing') return;
