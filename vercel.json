@@ -1,5 +1,4 @@
 {
-  "name": "albins-tic-tac-toe",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
