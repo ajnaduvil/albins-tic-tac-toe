@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GameState, Player } from '../types';
-import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2, MessageCircle } from 'lucide-react';
+import { ChatMessage, GameState, Player } from '../types';
+import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import confetti from 'canvas-confetti';
 
@@ -20,7 +20,7 @@ interface GameBoardProps {
   onSendEmoji: (emoji: string) => void;
   onSendNudge: () => void;
   isNudged: boolean;
-  incomingMessage: string | null;
+  chatMessages: ChatMessage[];
   onSendChat: (text: string) => void;
 }
 
@@ -42,7 +42,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   onSendEmoji,
   onSendNudge,
   isNudged,
-  incomingMessage,
+  chatMessages,
   onSendChat
 }) => {
   const { board, currentPlayer, status, winner, winningLine, gridSize, winCondition } = gameState;
@@ -63,6 +63,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   });
 
   const chatInputRef = useRef<HTMLInputElement>(null);
+  const chatWidgetRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const prevChatLenRef = useRef<number>(chatMessages.length);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (status === 'winner' && winner === myPlayer) {
@@ -78,6 +82,49 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     if (isChatOpen && chatInputRef.current) {
         chatInputRef.current.focus();
     }
+  }, [isChatOpen]);
+
+  useEffect(() => {
+    const prevLen = prevChatLenRef.current;
+    const nextLen = chatMessages.length;
+    if (nextLen > prevLen) {
+      // Only count messages from opponent as unread, and only when popover is closed
+      if (!isChatOpen) {
+        const newMessages = chatMessages.slice(prevLen);
+        const newUnread = myPlayer ? newMessages.filter(m => m.from !== myPlayer).length : newMessages.length;
+        if (newUnread > 0) setUnreadCount(c => c + newUnread);
+      }
+      prevChatLenRef.current = nextLen;
+    }
+  }, [chatMessages, isChatOpen, myPlayer]);
+
+  useEffect(() => {
+    if (isChatOpen) {
+      setUnreadCount(0);
+      // Scroll to bottom when opening
+      requestAnimationFrame(() => chatEndRef.current?.scrollIntoView({ block: 'end' }));
+    }
+  }, [isChatOpen]);
+
+  useEffect(() => {
+    if (!isChatOpen) return;
+    // Auto-scroll to bottom when new messages arrive while open
+    requestAnimationFrame(() => chatEndRef.current?.scrollIntoView({ block: 'end' }));
+  }, [chatMessages.length, isChatOpen]);
+
+  useEffect(() => {
+    if (!isChatOpen) return;
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
+      if (!chatWidgetRef.current) return;
+      if (chatWidgetRef.current.contains(e.target as Node)) return;
+      setIsChatOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('touchstart', onPointerDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('touchstart', onPointerDown);
+    };
   }, [isChatOpen]);
 
   const copyCode = () => {
@@ -96,7 +143,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const trimmed = text.trim();
     if (trimmed) {
         onSendChat(trimmed.slice(0, 50)); // Max 50 chars
-        setIsChatOpen(false);
         setChatInput('');
     }
   };
@@ -125,7 +171,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     return `${opponentName}'s Turn`;
   };
 
-  const PlayerBadge = ({ player, name, score, isMe, emoji, message }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null, message?: string | null }) => (
+  const PlayerBadge = ({ player, name, score, isMe, emoji }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null }) => (
     <div className={clsx(
       "relative flex items-center gap-3 px-4 py-2 rounded-xl border transition-all duration-300 flex-1 min-w-0",
       player === 'X' ? "border-indigo-500/30 bg-indigo-500/10" : "border-emerald-500/30 bg-emerald-500/10",
@@ -136,16 +182,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       {emoji && (
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 animate-[bounce_1s_infinite] z-30 pointer-events-none">
           <span className="text-5xl drop-shadow-xl filter">{emoji}</span>
-        </div>
-      )}
-
-      {/* Message Bubble */}
-      {message && (
-        <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-40 w-max max-w-[150px] animate-[fade-in-up_0.3s_ease-out]">
-            <div className="bg-white text-slate-900 px-3 py-2 rounded-xl rounded-bl-none shadow-xl font-bold text-sm break-words relative">
-                {message}
-                <div className="absolute bottom-[-6px] left-2 w-0 h-0 border-l-[6px] border-l-transparent border-t-[6px] border-t-white border-r-[6px] border-r-transparent"></div>
-            </div>
         </div>
       )}
 
@@ -167,7 +203,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     <div className={clsx("w-full max-w-lg flex flex-col items-center gap-6 p-4", isNudged && "animate-shake")}>
       
       {/* Top Bar */}
-      <div className="w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-3 rounded-xl border border-slate-700 shadow-xl">
+      <div className="relative z-30 w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-3 rounded-xl border border-slate-700 shadow-xl">
         <div className="flex flex-col">
           <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-0.5">Room Code</span>
           <div className="flex items-center gap-2 group cursor-pointer" onClick={copyCode}>
@@ -181,13 +217,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Goal</span>
                  <span className="text-xs font-bold text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">{winCondition} in a row</span>
             </div>
-            
-            <button 
-                onClick={() => setIsChatOpen(true)}
-                className="p-2 bg-slate-700/50 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg transition-colors border border-transparent hover:border-indigo-500/30"
-            >
-                <MessageSquare className="w-4 h-4" />
-            </button>
             <button onClick={onLeave} className="p-2 bg-slate-700/50 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/30">
                <LogOut className="w-4 h-4" />
             </button>
@@ -202,7 +231,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             score={scores.X} 
             isMe={myPlayer === 'X'} 
             emoji={myPlayer === 'X' ? myEmoji : incomingEmoji}
-            message={myPlayer === 'X' ? null : incomingMessage}
          />
          <div className="text-slate-600 font-bold text-lg shrink-0">VS</div>
          <PlayerBadge 
@@ -211,7 +239,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             score={scores.O} 
             isMe={myPlayer === 'O'} 
             emoji={myPlayer === 'O' ? myEmoji : incomingEmoji}
-            message={myPlayer === 'O' ? null : incomingMessage}
          />
       </div>
 
@@ -316,72 +343,130 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </button>
       )}
 
-      {/* Chat Modal */}
-      {isChatOpen && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setIsChatOpen(false)}>
-              <div className="bg-slate-800 w-full max-w-sm rounded-t-2xl sm:rounded-2xl border border-slate-700 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
-                  <div className="p-4 border-b border-slate-700 flex items-center justify-between bg-slate-800/50">
-                      <div className="flex items-center gap-2">
-                          <MessageCircle className="w-5 h-5 text-indigo-400" />
-                          <h3 className="font-bold text-white">Quick Chat</h3>
-                      </div>
-                      <button onClick={() => setIsChatOpen(false)} className="text-slate-400 hover:text-white">
-                          <X className="w-5 h-5" />
-                      </button>
+      {/* Floating Chat Widget (bottom-right, agent-style) */}
+      <div className="fixed bottom-4 right-4 z-[9999]" ref={chatWidgetRef}>
+        {isChatOpen && (
+          <div className="mb-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80">
+            <div className="bg-slate-800/95 backdrop-blur border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
+                    <MessageSquare className="w-4 h-4 text-indigo-300" />
                   </div>
-                  
-                  <div className="p-4 overflow-y-auto space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                          {presets.map((msg, idx) => (
-                              <div key={idx} className="group flex gap-1">
-                                <button 
-                                    onClick={() => handleSendChat(msg)}
-                                    className="flex-1 bg-slate-700/50 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-600 rounded-lg p-3 text-sm font-medium text-slate-200 text-left transition-all truncate"
-                                >
-                                    {msg}
-                                </button>
-                                <button onClick={() => deletePreset(idx)} className="px-2 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                          ))}
-                      </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-white leading-tight">Chat</div>
+                    <div className="text-[10px] text-slate-400 truncate leading-tight">{opponentName}</div>
                   </div>
-
-                  <div className="p-4 bg-slate-900 border-t border-slate-700">
-                      <form onSubmit={e => { e.preventDefault(); handleSendChat(chatInput); }} className="flex gap-2">
-                          <input 
-                              ref={chatInputRef}
-                              value={chatInput}
-                              onChange={e => setChatInput(e.target.value)}
-                              placeholder="Type a message..."
-                              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
-                              maxLength={50}
-                          />
-                          {chatInput.trim() && !presets.includes(chatInput.trim()) ? (
-                              <button 
-                                type="button" 
-                                onClick={addPreset}
-                                className="p-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors"
-                                title="Save as preset"
-                              >
-                                  <Plus className="w-5 h-5" />
-                              </button>
-                          ) : (
-                              <button 
-                                type="submit"
-                                disabled={!chatInput.trim()}
-                                className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                              >
-                                  <Send className="w-5 h-5" />
-                              </button>
-                          )}
-                      </form>
-                      <p className="text-[10px] text-slate-500 mt-2 text-center">Tap 'Plus' to save message as quick reply.</p>
-                  </div>
+                </div>
+                <button onClick={() => setIsChatOpen(false)} className="text-slate-400 hover:text-white" aria-label="Close chat">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
+
+              <div className="p-3 max-h-[55vh] overflow-y-auto space-y-2">
+                {chatMessages.length === 0 ? (
+                  <div className="text-xs text-slate-500 text-center py-6">No messages yet. Say hi!</div>
+                ) : (
+                  chatMessages.map((m) => {
+                    const isMe = m.from === myPlayer;
+                    return (
+                      <div key={m.id} className={clsx("flex", isMe ? "justify-end" : "justify-start")}>
+                        <div className={clsx(
+                          "max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow border",
+                          isMe
+                            ? "bg-indigo-500/20 border-indigo-500/30 text-slate-100 rounded-tr-md"
+                            : "bg-slate-900/60 border-slate-700 text-slate-200 rounded-tl-md"
+                        )}>
+                          <div className={clsx("text-[10px] font-bold mb-1", isMe ? "text-indigo-200" : "text-slate-400")}>
+                            {isMe ? "You" : m.name}
+                          </div>
+                          <div className="break-words">{m.text}</div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              <div className="px-3 pb-3">
+                <div className="max-h-24 overflow-y-auto mb-3 pr-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    {presets.map((msg, idx) => (
+                      <div key={`${msg}-${idx}`} className="group flex gap-1 min-w-0">
+                        <button
+                          type="button"
+                          onClick={() => handleSendChat(msg)}
+                          className="flex-1 bg-slate-700/40 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-600 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 text-left transition-all truncate"
+                          title={msg}
+                        >
+                          {msg}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deletePreset(idx)}
+                          className="px-2 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Delete preset"
+                          title="Delete preset"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <form onSubmit={e => { e.preventDefault(); handleSendChat(chatInput); }} className="flex gap-2">
+                  <input 
+                    ref={chatInputRef}
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    placeholder="Type a message…"
+                    className="flex-1 bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    maxLength={50}
+                  />
+                  {chatInput.trim() && !presets.includes(chatInput.trim()) ? (
+                    <button 
+                      type="button" 
+                      onClick={addPreset}
+                      className="p-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors"
+                      title="Save as preset"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  ) : (
+                    <button 
+                      type="submit"
+                      disabled={!chatInput.trim()}
+                      className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      aria-label="Send message"
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+                  )}
+                </form>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-[10px] text-slate-500">Press Enter to send. Max 50 chars. Use + to save.</p>
+                </div>
+              </div>
+            </div>
           </div>
-      )}
+        )}
+
+        <button
+          onClick={() => setIsChatOpen(o => !o)}
+          className="relative w-14 h-14 rounded-full bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 transition-colors flex items-center justify-center border border-indigo-400/20"
+          aria-label={isChatOpen ? "Close chat" : "Open chat"}
+        >
+          <MessageSquare className="w-6 h-6" />
+          {unreadCount > 0 && !isChatOpen && (
+            <span className="absolute -top-1 -right-1 min-w-6 h-6 px-1 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center border border-slate-900">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </button>
+      </div>
+
     </div>
   );
 };

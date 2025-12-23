@@ -26,7 +26,7 @@ const App: React.FC = () => {
     sendNudge,
     isNudged,
     sendChat,
-    incomingMessage
+    chatMessages
   } = usePeerGame();
 
   const renderContent = () => {
@@ -93,7 +93,7 @@ const App: React.FC = () => {
             onSendNudge={sendNudge}
             isNudged={isNudged}
             onSendChat={sendChat}
-            incomingMessage={incomingMessage}
+            chatMessages={chatMessages}
           />
         ) : isWaitingForOpponent ? (
           <div className="flex flex-col items-center gap-6 p-8 bg-slate-800/80 rounded-2xl border border-slate-700 max-w-sm w-full text-center shadow-2xl">

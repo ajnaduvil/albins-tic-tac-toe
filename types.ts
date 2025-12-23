@@ -2,6 +2,14 @@ export type Player = 'X' | 'O';
 export type CellValue = Player | null;
 export type GameStatus = 'idle' | 'playing' | 'winner' | 'draw';
 
+export interface ChatMessage {
+  id: string;
+  from: Player;
+  name: string;
+  text: string;
+  ts: number;
+}
+
 export interface GameState {
   board: CellValue[];
   currentPlayer: Player;
@@ -20,6 +28,8 @@ export type PeerMessage =
   | { type: 'SYNC_STATE'; state: GameState }
   | { type: 'HANDSHAKE'; name: string; gridSize?: number; winCondition?: number }
   | { type: 'EMOJI'; emoji: string }
+  | { type: 'CHAT'; id: string; from: Player; name: string; text: string; ts: number }
+  // Back-compat with older clients (if any) that only sent text
   | { type: 'CHAT'; text: string }
   | { type: 'NUDGE' }
   | { type: 'PING' }
@@ -45,6 +55,6 @@ export interface GameContextType {
   sendEmoji: (emoji: string) => void;
   sendNudge: () => void;
   isNudged: boolean;
-  incomingMessage: string | null;
+  chatMessages: ChatMessage[];
   sendChat: (text: string) => void;
 }

@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Peer, { DataConnection, PeerOptions } from 'peerjs';
-import { GameState, ConnectionStatus, Player, PeerMessage } from '../types';
+import { GameState, ConnectionStatus, Player, PeerMessage, ChatMessage } from '../types';
 import { checkWinner, isDraw, getInitialGameState } from '../utils/gameLogic';
 
 const ID_PREFIX = 'peer-tac-toe-v4-public-'; // Bumped version to v4 to avoid cached/stale IDs on server
@@ -30,7 +30,7 @@ export const usePeerGame = () => {
   
   const [incomingEmoji, setIncomingEmoji] = useState<string | null>(null);
   const [myEmoji, setMyEmoji] = useState<string | null>(null);
-  const [incomingMessage, setIncomingMessage] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   
   const [starter, setStarter] = useState<Player>('X');
   const [isNudged, setIsNudged] = useState(false);
@@ -40,8 +40,25 @@ export const usePeerGame = () => {
   const connectionTimeoutRef = useRef<number | null>(null);
   const incomingEmojiTimeoutRef = useRef<number | null>(null);
   const myEmojiTimeoutRef = useRef<number | null>(null);
-  const incomingMessageTimeoutRef = useRef<number | null>(null);
   const nudgeTimeoutRef = useRef<number | null>(null);
+
+  const createId = useCallback(() => {
+    // Prefer stable UUIDs when available (modern browsers)
+    try {
+      if ('crypto' in window && 'randomUUID' in window.crypto) {
+        return window.crypto.randomUUID();
+      }
+    } catch {}
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }, []);
+
+  const appendChatMessage = useCallback((msg: ChatMessage) => {
+    setChatMessages((prev) => {
+      const next = [...prev, msg];
+      // Keep memory bounded
+      return next.length > 100 ? next.slice(-100) : next;
+    });
+  }, []);
 
   // Helper to safely send messages
   const sendMessage = useCallback((msg: PeerMessage) => {
@@ -117,23 +134,37 @@ export const usePeerGame = () => {
         setIncomingEmoji(null);
       }, 3000);
     } else if (msg.type === 'CHAT') {
-      setIncomingMessage(msg.text);
-      if (incomingMessageTimeoutRef.current) clearTimeout(incomingMessageTimeoutRef.current);
-      incomingMessageTimeoutRef.current = window.setTimeout(() => {
-        setIncomingMessage(null);
-      }, 5000);
+      // Back-compat: older clients may only send { type:'CHAT', text }
+      if ('from' in msg && msg.from && 'id' in msg && msg.id && 'name' in msg && msg.name && 'ts' in msg && msg.ts) {
+        appendChatMessage({
+          id: msg.id,
+          from: msg.from,
+          name: msg.name,
+          text: msg.text,
+          ts: msg.ts
+        });
+      } else {
+        // If we don't know the sender, assume it's opponent (since this is received over the connection)
+        const assumedFrom: Player = myPlayer === 'X' ? 'O' : 'X';
+        appendChatMessage({
+          id: createId(),
+          from: assumedFrom,
+          name: opponentName || 'Opponent',
+          text: msg.text,
+          ts: Date.now()
+        });
+      }
     } else if (msg.type === 'NUDGE') {
       setIsNudged(true);
       if (nudgeTimeoutRef.current) clearTimeout(nudgeTimeoutRef.current);
       nudgeTimeoutRef.current = window.setTimeout(() => setIsNudged(false), 500); 
     }
-  }, [updateGameLocal]);
+  }, [appendChatMessage, createId, myPlayer, opponentName, updateGameLocal]);
 
   const cleanup = useCallback(() => {
     if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
     if (incomingEmojiTimeoutRef.current) clearTimeout(incomingEmojiTimeoutRef.current);
     if (myEmojiTimeoutRef.current) clearTimeout(myEmojiTimeoutRef.current);
-    if (incomingMessageTimeoutRef.current) clearTimeout(incomingMessageTimeoutRef.current);
     if (nudgeTimeoutRef.current) clearTimeout(nudgeTimeoutRef.current);
     
     // Close connections first
@@ -158,7 +189,7 @@ export const usePeerGame = () => {
     setOpponentName('Opponent');
     setIncomingEmoji(null);
     setMyEmoji(null);
-    setIncomingMessage(null);
+    setChatMessages([]);
     setIsNudged(false);
   }, []);
 
@@ -360,9 +391,19 @@ export const usePeerGame = () => {
 
   const sendChat = useCallback((text: string) => {
     if (connectionStatus === 'connected') {
-      sendMessage({ type: 'CHAT', text });
+      if (!myPlayer) return;
+      const msg: ChatMessage = {
+        id: createId(),
+        from: myPlayer,
+        name: myName || 'You',
+        text,
+        ts: Date.now()
+      };
+      // Local echo so sender sees it immediately too
+      appendChatMessage(msg);
+      sendMessage({ type: 'CHAT', ...msg });
     }
-  }, [connectionStatus, sendMessage]);
+  }, [appendChatMessage, connectionStatus, createId, myName, myPlayer, sendMessage]);
 
   const sendNudge = useCallback(() => {
     if (connectionStatus === 'connected') {
@@ -406,6 +447,6 @@ export const usePeerGame = () => {
     sendChat,
     sendNudge,
     isNudged,
-    incomingMessage
+    chatMessages
   };
 };
