@@ -486,15 +486,25 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 ) : (
                   chatMessages.map((m) => {
                     const isMe = m.from === myPlayer;
+                    const senderTheme =
+                      m.from === 'X'
+                        ? {
+                            bubble:
+                              'bg-gradient-to-br from-indigo-500/30 via-indigo-600/30 to-purple-600/30 border-indigo-400/50 text-white shadow-indigo-500/20',
+                            label: 'text-indigo-200',
+                          }
+                        : {
+                            bubble:
+                              'bg-gradient-to-br from-emerald-500/30 via-emerald-600/30 to-teal-600/30 border-emerald-400/50 text-white shadow-emerald-500/20',
+                            label: 'text-emerald-200',
+                          };
                     return (
                       <div key={m.id} className={clsx("flex", isMe ? "justify-end" : "justify-start")}>
                         <div className={clsx(
                           "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-lg border-2",
-                          isMe
-                            ? "bg-gradient-to-br from-indigo-500/30 via-indigo-600/30 to-purple-600/30 border-indigo-400/50 text-white rounded-tr-md"
-                            : "bg-gradient-to-br from-amber-500/80 via-orange-500/80 to-red-500/80 border-amber-300/90 text-white rounded-tl-md shadow-amber-500/50"
+                          senderTheme.bubble
                         )}>
-                          <div className={clsx("text-[10px] font-bold mb-1.5 uppercase tracking-wider", isMe ? "text-indigo-200" : "text-amber-50")}>
+                          <div className={clsx("text-[10px] font-bold mb-1.5 uppercase tracking-wider", senderTheme.label)}>
                             {isMe ? "You" : m.name}
                           </div>
                           <div className="break-words leading-relaxed">{m.text}</div>
