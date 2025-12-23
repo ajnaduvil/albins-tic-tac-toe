@@ -62,10 +62,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
   };
 
   return (
-    <div className="w-full max-w-md flex flex-col gap-6 animate-scale-in">
+    <div className="w-full max-w-md flex flex-col gap-4 sm:gap-6 animate-scale-in">
       
       {/* Header */}
-      <div className="text-center space-y-2 mb-2">
+      <div className="text-center space-y-1.5 sm:space-y-2 mb-1 sm:mb-2">
         <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300 tracking-tight flex items-center justify-center gap-3">
           <Gamepad2 className="w-8 h-8 text-indigo-400" />
           Albin's Tic Tac Toe
@@ -187,8 +187,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
 
         {/* Join Tab Content */}
         {activeTab === 'join' && (
-          <form onSubmit={handleJoin} className="space-y-3 sm:space-y-5 animate-fade-in">
-            <div className="space-y-3">
+          <form onSubmit={handleJoin} className="animate-fade-in flex flex-col gap-3 sm:gap-5">
+            {/* Content area (can scroll on very small heights) */}
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-3">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Room Code</label>
               
               {/* Code Display */}
@@ -281,13 +282,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
               <p className="text-[10px] sm:text-xs text-slate-500 ml-1 text-center">Ask your friend for the code shown in their room.</p>
             </div>
 
-            <button
-              type="submit"
-              disabled={isConnecting || !name.trim() || roomCode.length !== 3}
-              className="w-full py-3.5 sm:py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 mt-2 sm:mt-4"
-            >
-              {isConnecting ? 'Connecting...' : 'Join Game'}
-            </button>
+            {/* Sticky CTA (always visible on mobile) */}
+            <div className="sticky bottom-0 pt-2 bg-gradient-to-t from-slate-800/95 via-slate-800/70 to-transparent backdrop-blur">
+              <button
+                type="submit"
+                disabled={isConnecting || !name.trim() || roomCode.length !== 3}
+                className="w-full py-3.5 sm:py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20"
+              >
+                {isConnecting ? 'Connecting...' : 'Join Game'}
+              </button>
+            </div>
           </form>
         )}
 

@@ -67,7 +67,7 @@ const App: React.FC = () => {
   const isWaitingForOpponent = isHost && roomCode && connectionStatus === 'disconnected';
 
   return (
-    <div className="min-h-screen w-full bg-[#0f172a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0f172a] to-black flex items-center justify-center p-4">
+    <div className="min-h-[100svh] w-full bg-[#0f172a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0f172a] to-black flex items-start sm:items-center justify-center px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-y-auto">
       {/* Background Decor */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[100px]" />
