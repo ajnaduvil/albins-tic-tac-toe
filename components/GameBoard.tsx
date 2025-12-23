@@ -25,6 +25,19 @@ interface GameBoardProps {
 }
 
 const EMOJIS = ['😂', '😎', '😡', '😭', '🤔', '👋', '🖕'];
+
+// Helper to render emoji with animation
+const renderEmoji = (emoji: string | null, size: number = 40) => {
+  if (!emoji) return null;
+  return (
+    <span 
+      className="inline-block animate-bounce hover:animate-pulse transition-transform hover:scale-110" 
+      style={{ fontSize: `${size}px` }}
+    >
+      {emoji}
+    </span>
+  );
+};
 const DEFAULT_PRESETS = ['Nice move!', 'GG', 'Unlucky', 'Rematch?', 'Hurry up!'];
 
 export const GameBoard: React.FC<GameBoardProps> = ({ 
@@ -206,7 +219,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       {/* Emoji Overlay */}
       {emoji && (
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 animate-[bounce_1s_infinite] z-[9998] pointer-events-none">
-          <span className="text-5xl drop-shadow-xl filter">{emoji}</span>
+          {renderEmoji(emoji, 64)}
         </div>
       )}
 
@@ -403,9 +416,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     onClick={() => {
                         onSendEmoji(emoji);
                     }}
-                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-base sm:text-xl hover:bg-slate-700 rounded-full transition-transform hover:scale-110 active:scale-95"
+                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-slate-700 rounded-full transition-all hover:scale-110 active:scale-95"
+                    title={emoji}
                 >
-                    {emoji}
+                    <span className="text-base sm:text-xl inline-block animate-bounce hover:animate-pulse">{emoji}</span>
                 </button>
             ))}
         </div>
@@ -478,9 +492,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                           "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-lg border-2",
                           isMe
                             ? "bg-gradient-to-br from-indigo-500/30 via-indigo-600/30 to-purple-600/30 border-indigo-400/50 text-white rounded-tr-md"
-                            : "bg-gradient-to-br from-slate-800/80 via-slate-700/80 to-slate-900/80 border-slate-600/50 text-slate-100 rounded-tl-md"
+                            : "bg-gradient-to-br from-amber-500/80 via-orange-500/80 to-red-500/80 border-amber-300/90 text-white rounded-tl-md shadow-amber-500/50"
                         )}>
-                          <div className={clsx("text-[10px] font-bold mb-1.5 uppercase tracking-wider", isMe ? "text-indigo-200" : "text-slate-400")}>
+                          <div className={clsx("text-[10px] font-bold mb-1.5 uppercase tracking-wider", isMe ? "text-indigo-200" : "text-amber-50")}>
                             {isMe ? "You" : m.name}
                           </div>
                           <div className="break-words leading-relaxed">{m.text}</div>
