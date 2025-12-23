@@ -82,9 +82,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
         </a>
       </div>
 
-      <div className="bg-slate-800/50 backdrop-blur-xl p-6 rounded-3xl border border-slate-700 shadow-2xl">
+      <div className="bg-slate-800/50 backdrop-blur-xl p-4 sm:p-6 rounded-3xl border border-slate-700 shadow-2xl">
         {/* Name Input - Always Visible */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-1.5 block">Your Name</label>
           <div className="relative group">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
@@ -93,7 +93,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your nickname"
-              className="w-full bg-slate-900/50 border border-slate-700 focus:border-indigo-500 rounded-xl py-3.5 pl-12 pr-4 text-slate-100 placeholder:text-slate-600 focus:outline-none transition-all"
+              className="w-full bg-slate-900/50 border border-slate-700 focus:border-indigo-500 rounded-xl py-3 sm:py-3.5 pl-12 pr-4 text-slate-100 placeholder:text-slate-600 focus:outline-none transition-all"
               maxLength={12}
             />
           </div>
@@ -187,14 +187,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
 
         {/* Join Tab Content */}
         {activeTab === 'join' && (
-          <form onSubmit={handleJoin} className="space-y-5 animate-fade-in">
+          <form onSubmit={handleJoin} className="space-y-3 sm:space-y-5 animate-fade-in">
             <div className="space-y-3">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Room Code</label>
               
               {/* Code Display */}
               <div className="relative group">
                 <Gamepad2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors" />
-                <div className="w-full bg-slate-900/50 border-2 border-slate-700 focus-within:border-emerald-500 rounded-xl py-4 pl-12 pr-4 text-slate-100 font-mono tracking-[0.3em] text-2xl text-center min-h-[60px] flex items-center justify-center">
+                <div className="w-full bg-slate-900/50 border-2 border-slate-700 focus-within:border-emerald-500 rounded-xl py-3 sm:py-4 pl-12 pr-4 text-slate-100 font-mono tracking-[0.25em] sm:tracking-[0.3em] text-xl sm:text-2xl text-center min-h-[52px] sm:min-h-[60px] flex items-center justify-center">
                   {roomCode.padEnd(3, '•').split('').map((char, idx) => (
                     <span key={idx} className={clsx(
                       "inline-block w-8",
@@ -207,7 +207,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
               </div>
 
               {/* Numeric Keypad */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                   <button
                     key={num}
@@ -219,7 +219,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                     }}
                     disabled={roomCode.length >= 3}
                     className={clsx(
-                      "py-4 rounded-xl border-2 font-bold text-lg transition-all",
+                      "py-3 sm:py-4 rounded-xl border-2 font-bold text-lg transition-all",
                       "bg-slate-800/50 border-slate-700 text-slate-200",
                       "hover:bg-emerald-600/20 hover:border-emerald-500/50 hover:text-emerald-300",
                       "active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800/50 disabled:hover:border-slate-700"
@@ -237,7 +237,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                   }}
                   disabled={roomCode.length === 0}
                   className={clsx(
-                    "py-4 rounded-xl border-2 font-bold transition-all",
+                    "py-3 sm:py-4 rounded-xl border-2 font-bold transition-all",
                     "bg-slate-800/50 border-slate-700 text-slate-400",
                     "hover:bg-red-600/20 hover:border-red-500/50 hover:text-red-300",
                     "active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800/50"
@@ -249,13 +249,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                 <button
                   type="button"
                   onClick={() => {
-                    if (roomCode.length < 4) {
+                    if (roomCode.length < 3) {
                       setRoomCode(roomCode + '0');
                     }
                   }}
                   disabled={roomCode.length >= 3}
                   className={clsx(
-                    "py-4 rounded-xl border-2 font-bold text-lg transition-all",
+                    "py-3 sm:py-4 rounded-xl border-2 font-bold text-lg transition-all",
                     "bg-slate-800/50 border-slate-700 text-slate-200",
                     "hover:bg-emerald-600/20 hover:border-emerald-500/50 hover:text-emerald-300",
                     "active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800/50 disabled:hover:border-slate-700"
@@ -268,7 +268,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                   onClick={() => setRoomCode('')}
                   disabled={roomCode.length === 0}
                   className={clsx(
-                    "py-4 rounded-xl border-2 font-bold text-sm transition-all",
+                    "py-3 sm:py-4 rounded-xl border-2 font-bold text-xs sm:text-sm transition-all",
                     "bg-slate-800/50 border-slate-700 text-slate-400",
                     "hover:bg-slate-700/50 hover:border-slate-600 hover:text-slate-300",
                     "active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
@@ -278,13 +278,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                 </button>
               </div>
               
-              <p className="text-xs text-slate-500 ml-1 text-center">Ask your friend for the code shown in their room.</p>
+              <p className="text-[10px] sm:text-xs text-slate-500 ml-1 text-center">Ask your friend for the code shown in their room.</p>
             </div>
 
             <button
               type="submit"
               disabled={isConnecting || !name.trim() || roomCode.length !== 3}
-              className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 mt-4"
+              className="w-full py-3.5 sm:py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 mt-2 sm:mt-4"
             >
               {isConnecting ? 'Connecting...' : 'Join Game'}
             </button>

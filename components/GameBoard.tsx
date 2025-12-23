@@ -48,6 +48,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const { board, currentPlayer, status, winner, winningLine, gridSize, winCondition } = gameState;
   const isMyTurn = status === 'playing' && currentPlayer === myPlayer;
   const isOpponentTurn = status === 'playing' && currentPlayer !== myPlayer;
+  const isGameOver = status === 'winner' || status === 'draw';
   const [justNudged, setJustNudged] = useState(false);
   
   // Chat State
@@ -194,9 +195,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const PlayerBadge = ({ player, name, score, isMe, emoji, message }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null, message?: string | null }) => (
     <div className={clsx(
-      "relative flex items-center gap-3 px-4 py-2 rounded-xl border transition-all duration-300 flex-1 min-w-0",
+      "relative flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl border transition-all duration-300 flex-1 min-w-0",
       player === 'X' ? "border-indigo-500/30 bg-indigo-500/10" : "border-emerald-500/30 bg-emerald-500/10",
-      currentPlayer === player && status === 'playing' ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-slate-400 opacity-100 scale-105 shadow-lg" : "opacity-70"
+      // On very small screens, scaling can cause clipping; keep scale for sm+
+      currentPlayer === player && status === 'playing'
+        ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-slate-400 opacity-100 sm:scale-105 shadow-lg"
+        : "opacity-70"
     )}>
       
       {/* Emoji Overlay */}
@@ -242,25 +246,31 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </div>
       )}
 
-      <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800">
-        {player === 'X' ? <X className="w-5 h-5 text-indigo-400" /> : <Circle className="w-5 h-5 text-emerald-400" />}
+      <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800">
+        {player === 'X' ? <X className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" /> : <Circle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />}
       </div>
       <div className="flex flex-col min-w-0">
          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
            {isMe ? 'YOU' : 'OPPONENT'} 
            {winner === player && <Trophy className="w-3 h-3 text-amber-400" />}
          </span>
-         <span className="text-sm font-semibold text-white truncate">{name}</span>
+         <span className="text-xs sm:text-sm font-semibold text-white truncate">{name}</span>
       </div>
-      <div className="ml-auto text-xl font-bold text-slate-200">{score}</div>
+      <div className="ml-auto text-base sm:text-xl font-bold text-slate-200">{score}</div>
     </div>
   );
 
   return (
-    <div className={clsx("w-full max-w-lg flex flex-col items-center gap-6 p-4", isNudged && "animate-shake")}>
+    <div className={clsx(
+      // Slightly tighter vertical rhythm on mobile; keep roomy layout on sm+
+      "w-full max-w-lg flex flex-col items-center gap-4 sm:gap-6 p-3 sm:p-4",
+      // Make room for the mobile fixed Play Again bar so it doesn't cover content
+      isGameOver && "pb-28 sm:pb-4",
+      isNudged && "animate-shake"
+    )}>
       
       {/* Top Bar */}
-      <div className="relative z-20 w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-3 rounded-xl border border-slate-700 shadow-xl">
+      <div className="relative z-20 w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-2.5 sm:p-3 rounded-xl border border-slate-700 shadow-xl">
         <div className="flex flex-col">
           <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-0.5">Room Code</span>
           <div className="flex items-center gap-2 group cursor-pointer" onClick={copyCode}>
@@ -291,7 +301,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {/* Players & Score */}
-      <div className="relative z-30 w-full flex items-center justify-between gap-3">
+      <div className="relative z-30 w-full grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
          <PlayerBadge 
             player="X" 
             name={myPlayer === 'X' ? myName : opponentName} 
@@ -300,7 +310,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             emoji={myPlayer === 'X' ? myEmoji : incomingEmoji}
             message={lastBubble.X}
          />
-         <div className="text-slate-600 font-bold text-lg shrink-0">VS</div>
+         <div className="hidden sm:block text-slate-600 font-bold text-lg shrink-0">VS</div>
          <PlayerBadge 
             player="O" 
             name={myPlayer === 'O' ? myName : opponentName} 
@@ -313,7 +323,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Status Bar */}
       <div className="w-full relative z-10">
-        <div className={clsx("w-full py-3 px-6 rounded-xl text-center font-bold text-lg transition-all duration-300 shadow-lg",
+        <div className={clsx("w-full py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl text-center font-bold text-base sm:text-lg transition-all duration-300 shadow-lg",
           status === 'winner' && winner === myPlayer ? "bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-500/20" :
           status === 'winner' && winner !== myPlayer ? "bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-red-500/20" :
           status === 'draw' ? "bg-slate-700 text-slate-200" :
@@ -380,20 +390,20 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             })}
         </div>
       </div>
-       <div className="sm:hidden flex items-center justify-center mt-[-10px]">
+       <div className="sm:hidden flex items-center justify-center mt-[-8px]">
             <span className="text-xs font-bold text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Goal: {winCondition} in a row</span>
       </div>
 
       {/* Emoji Bar */}
-      <div className="w-full flex justify-center gap-2 pt-2">
-        <div className="flex bg-slate-800/80 backdrop-blur rounded-full p-2 gap-1 border border-slate-700 shadow-xl overflow-x-auto max-w-full no-scrollbar">
+      <div className="w-full flex justify-center gap-1 pt-1">
+        <div className="flex flex-wrap justify-center bg-slate-800/80 backdrop-blur rounded-2xl sm:rounded-full p-1.5 sm:p-2 gap-0.5 sm:gap-1 border border-slate-700 shadow-xl max-w-full">
             {EMOJIS.map(emoji => (
                 <button
                     key={emoji}
                     onClick={() => {
                         onSendEmoji(emoji);
                     }}
-                    className="w-10 h-10 flex-shrink-0 flex items-center justify-center text-xl hover:bg-slate-700 rounded-full transition-transform hover:scale-110 active:scale-95"
+                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-base sm:text-xl hover:bg-slate-700 rounded-full transition-transform hover:scale-110 active:scale-95"
                 >
                     {emoji}
                 </button>
@@ -402,18 +412,38 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {/* Game Over Actions */}
-      {(status === 'winner' || status === 'draw') && (
-        <button
-          onClick={onReset}
-          className="flex items-center gap-2 px-8 py-3 bg-white text-slate-900 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg animate-fade-in-up mt-2"
-        >
-          <RefreshCw className="w-5 h-5" />
-          Play Again
-        </button>
+      {isGameOver && (
+        <>
+          {/* Desktop / larger screens: keep the inline button */}
+          <button
+            onClick={onReset}
+            className="hidden sm:flex items-center gap-2 px-8 py-3 bg-white text-slate-900 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg animate-fade-in-up mt-2"
+          >
+            <RefreshCw className="w-5 h-5" />
+            Play Again
+          </button>
+
+          {/* Mobile: fixed bottom action bar (no scroll needed) */}
+          <div className="sm:hidden fixed left-0 right-0 bottom-0 z-[9998] px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-900/80 backdrop-blur border-t border-slate-700">
+            <button
+              onClick={onReset}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-white text-slate-900 rounded-xl font-black hover:bg-indigo-50 transition-colors shadow-xl"
+            >
+              <RefreshCw className="w-5 h-5" />
+              Play Again
+            </button>
+          </div>
+        </>
       )}
 
       {/* Floating Chat Widget (bottom-right, agent-style) */}
-      <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end" ref={chatWidgetRef}>
+      <div
+        className={clsx(
+          "fixed right-4 z-[9999] flex flex-col items-end",
+          isGameOver ? "bottom-24 sm:bottom-4" : "bottom-4"
+        )}
+        ref={chatWidgetRef}
+      >
         {isChatOpen && (
           <div className="mb-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80">
             <div className="bg-slate-800/95 backdrop-blur border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ maxHeight: '70vh' }}>
