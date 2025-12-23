@@ -422,24 +422,28 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 </button>
               </div>
 
-              <div className="p-3 max-h-[55vh] overflow-y-auto space-y-2">
+              {/* Chat Messages Section */}
+              <div className="p-3 max-h-[45vh] overflow-y-auto space-y-2 bg-slate-900/30">
                 {chatMessages.length === 0 ? (
-                  <div className="text-xs text-slate-500 text-center py-6">No messages yet. Say hi!</div>
+                  <div className="text-xs text-slate-500 text-center py-8">
+                    <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <div>No messages yet. Say hi!</div>
+                  </div>
                 ) : (
                   chatMessages.map((m) => {
                     const isMe = m.from === myPlayer;
                     return (
                       <div key={m.id} className={clsx("flex", isMe ? "justify-end" : "justify-start")}>
                         <div className={clsx(
-                          "max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow border",
+                          "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-lg border-2",
                           isMe
-                            ? "bg-indigo-500/20 border-indigo-500/30 text-slate-100 rounded-tr-md"
-                            : "bg-slate-900/60 border-slate-700 text-slate-200 rounded-tl-md"
+                            ? "bg-gradient-to-br from-indigo-500/30 via-indigo-600/30 to-purple-600/30 border-indigo-400/50 text-white rounded-tr-md"
+                            : "bg-gradient-to-br from-slate-800/80 via-slate-700/80 to-slate-900/80 border-slate-600/50 text-slate-100 rounded-tl-md"
                         )}>
-                          <div className={clsx("text-[10px] font-bold mb-1", isMe ? "text-indigo-200" : "text-slate-400")}>
+                          <div className={clsx("text-[10px] font-bold mb-1.5 uppercase tracking-wider", isMe ? "text-indigo-200" : "text-slate-400")}>
                             {isMe ? "You" : m.name}
                           </div>
-                          <div className="break-words">{m.text}</div>
+                          <div className="break-words leading-relaxed">{m.text}</div>
                         </div>
                       </div>
                     );
@@ -448,7 +452,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 <div ref={chatEndRef} />
               </div>
 
-              <div className="px-3 pb-3 overflow-x-hidden">
+              {/* Quick Replies Section - Separated */}
+              <div className="px-3 pt-3 pb-3 overflow-x-hidden border-t border-slate-700/50 bg-slate-800/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1 h-4 bg-indigo-500/50 rounded-full"></div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quick Replies</span>
+                </div>
                 <div className="max-h-24 overflow-y-auto mb-3 pr-1">
                   <div className="grid grid-cols-2 gap-2">
                     {presets.map((msg, idx) => (
@@ -456,10 +465,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                         <button
                           type="button"
                           onClick={() => handleSendChat(msg)}
-                          className="flex-1 bg-slate-700/40 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-600 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 text-left transition-all truncate"
+                          className="flex-1 bg-slate-700/60 hover:bg-indigo-600/30 hover:border-indigo-500/70 border-2 border-slate-600/50 rounded-lg px-3 py-2 text-xs font-medium text-slate-200 text-left transition-all truncate shadow-sm"
                           title={msg}
                         >
-                          {msg}
+                          <span className="opacity-70">⚡</span> {msg}
                         </button>
                         <button
                           type="button"
