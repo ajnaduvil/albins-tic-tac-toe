@@ -19,12 +19,6 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
-  "overrides": {
-    "liveemoji": {
-      "react": "19.2.3",
-      "react-dom": "19.2.3"
-    }
-  },
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vercel/node": "^5.5.16",
