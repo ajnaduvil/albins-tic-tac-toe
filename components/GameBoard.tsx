@@ -24,7 +24,7 @@ interface GameBoardProps {
   onSendChat: (text: string) => void;
 }
 
-const EMOJIS = ['😂', '😎', '😡', '😭', '🤔', '👋'];
+const EMOJIS = ['😂', '😎', '😡', '😭', '🤔', '👋', '🖕'];
 const DEFAULT_PRESETS = ['Nice move!', 'GG', 'Unlucky', 'Rematch?', 'Hurry up!'];
 
 export const GameBoard: React.FC<GameBoardProps> = ({ 
