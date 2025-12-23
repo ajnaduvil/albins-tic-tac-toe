@@ -25,15 +25,14 @@ interface GameBoardProps {
   onSendChat: (text: string) => void;
 }
 
-const EMOJIS = ['😂', '😎', '😡', '😭', '🤔', '👋', '🖕', '😉', '🍌', '👌'];
+const EMOJIS = ['😂', '😎', '😡', '😭', '😏', '🖕', '😉', '🍌', '👌'];
 
 const LIVE_EMOJI_MAP = {
   '😂': 'FaceWithTearsOfJoy',
   '😎': 'SmilingFaceWithSunglasses',
   '😡': 'AngryFace',
   '😭': 'LoudlyCryingFace',
-  '🤔': 'ThinkingFace',
-  '👋': 'WavingHand',
+  '😏': 'SmirkingFace',
   '🖕': 'MiddleFinger',
   '😉': 'WinkingFace',
   '🍌': 'Banana',

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePeerGame } from './hooks/usePeerGame';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { GameBoard } from './components/GameBoard';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Copy } from 'lucide-react';
+import clsx from 'clsx';
 
 const App: React.FC = () => {
   const {
@@ -28,6 +29,19 @@ const App: React.FC = () => {
     sendChat,
     chatMessages
   } = usePeerGame();
+  
+  const [copied, setCopied] = useState(false);
+  
+  const copyRoomCode = async () => {
+    if (!roomCode) return;
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   const renderContent = () => {
     // 1. Initial State or Error
@@ -107,8 +121,20 @@ const App: React.FC = () => {
               <p className="text-slate-400">Share this code with your friend</p>
             </div>
 
-            <div className="bg-slate-900 border-2 border-indigo-500/30 px-8 py-4 rounded-xl">
+            <div className="bg-slate-900 border-2 border-indigo-500/30 px-8 py-4 rounded-xl flex items-center gap-4">
               <span className="text-4xl font-mono font-bold text-white tracking-[0.2em]">{roomCode}</span>
+              <button
+                onClick={copyRoomCode}
+                className={clsx(
+                  "p-2 rounded-lg transition-all",
+                  copied 
+                    ? "bg-emerald-500/20 text-emerald-400" 
+                    : "text-slate-400 hover:text-indigo-400 hover:bg-slate-800/50"
+                )}
+                title={copied ? "Copied!" : "Copy room code"}
+              >
+                <Copy className={clsx("w-5 h-5 transition-transform", copied && "scale-110")} />
+              </button>
             </div>
             
             <p className="text-sm text-slate-500 animate-pulse">Waiting for player to join...</p>
