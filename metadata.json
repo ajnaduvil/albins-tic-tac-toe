@@ -1,0 +1,5 @@
+{
+  "name": "Albin's Tic Tac Toe",
+  "description": "A real-time multiplayer Tic Tac Toe game using P2P connection. Create a room, share the 3-letter code, and play instantly with a friend.",
+  "requestFramePermissions": []
+}
