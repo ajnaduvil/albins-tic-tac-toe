@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChatMessage, GameState, Player } from '../types';
+import { ChatMessage, GameState, Player, CellValue } from '../types';
 import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2, Github } from 'lucide-react';
 import { emojiData } from 'liveemoji/dist/emojiData';
 import clsx from 'clsx';
@@ -93,6 +93,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const [justNudged, setJustNudged] = useState(false);
   const prevIsNudgedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const [lastMoveIndex, setLastMoveIndex] = useState<number | null>(null);
+  const prevBoardRef = useRef<CellValue[]>(board);
   
   // Chat State
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -123,6 +125,29 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       });
     }
   }, [status, winner, myPlayer]);
+
+  // Track last move by comparing board changes
+  useEffect(() => {
+    if (prevBoardRef.current.length === board.length) {
+      // Find the cell that changed from null to a value
+      for (let i = 0; i < board.length; i++) {
+        if (prevBoardRef.current[i] === null && board[i] !== null) {
+          setLastMoveIndex(i);
+          // Clear highlight after 2 seconds
+          setTimeout(() => setLastMoveIndex(null), 2000);
+          break;
+        }
+      }
+    }
+    prevBoardRef.current = [...board];
+  }, [board]);
+
+  // Clear last move highlight on game reset
+  useEffect(() => {
+    if (status === 'idle' || (status === 'playing' && board.every(cell => cell === null))) {
+      setLastMoveIndex(null);
+    }
+  }, [status, board]);
 
   useEffect(() => {
     if (isChatOpen && chatInputRef.current) {
@@ -457,6 +482,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         >
             {board.map((cell, index) => {
               const isWinningCell = winningLine?.includes(index);
+              const isLastMove = lastMoveIndex === index;
               const canClick = !cell && isMyTurn && status === 'playing';
               const iconSizeClass = gridSize === 3 ? "w-16 h-16" : gridSize === 4 ? "w-10 h-10" : "w-6 h-6";
 
@@ -467,7 +493,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   disabled={!canClick}
                   className={clsx(
                     "relative flex items-center justify-center transition-all duration-200 w-full h-full",
-                    isWinningCell ? "bg-amber-900/50" : "bg-slate-900",
+                    isWinningCell ? "bg-amber-900/50" : 
+                    isLastMove ? "bg-cyan-500/20" : "bg-slate-900",
                     canClick ? "hover:bg-slate-800 cursor-pointer" : "cursor-default",
                     !cell && !canClick && "opacity-100", 
                   )}
