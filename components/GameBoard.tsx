@@ -67,6 +67,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const chatEndRef = useRef<HTMLDivElement>(null);
   const prevChatLenRef = useRef<number>(chatMessages.length);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [lastBubble, setLastBubble] = useState<{ X: string | null; O: string | null }>({ X: null, O: null });
+  const bubbleTimeoutRef = useRef<{ X: number | null; O: number | null }>({ X: null, O: null });
 
   useEffect(() => {
     if (status === 'winner' && winner === myPlayer) {
@@ -94,9 +96,28 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         const newUnread = myPlayer ? newMessages.filter(m => m.from !== myPlayer).length : newMessages.length;
         if (newUnread > 0) setUnreadCount(c => c + newUnread);
       }
+      // Update "last message" bubble for the sender, and auto-hide after a short time
+      const newest = chatMessages[nextLen - 1];
+      if (newest) {
+        const from = newest.from;
+        setLastBubble(prev => ({ ...prev, [from]: newest.text }));
+        const existing = bubbleTimeoutRef.current[from];
+        if (existing) window.clearTimeout(existing);
+        bubbleTimeoutRef.current[from] = window.setTimeout(() => {
+          setLastBubble(prev => ({ ...prev, [from]: null }));
+          bubbleTimeoutRef.current[from] = null;
+        }, 5000);
+      }
       prevChatLenRef.current = nextLen;
     }
   }, [chatMessages, isChatOpen, myPlayer]);
+
+  useEffect(() => {
+    return () => {
+      if (bubbleTimeoutRef.current.X) window.clearTimeout(bubbleTimeoutRef.current.X);
+      if (bubbleTimeoutRef.current.O) window.clearTimeout(bubbleTimeoutRef.current.O);
+    };
+  }, []);
 
   useEffect(() => {
     if (isChatOpen) {
@@ -171,7 +192,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     return `${opponentName}'s Turn`;
   };
 
-  const PlayerBadge = ({ player, name, score, isMe, emoji }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null }) => (
+  const PlayerBadge = ({ player, name, score, isMe, emoji, message }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null, message?: string | null }) => (
     <div className={clsx(
       "relative flex items-center gap-3 px-4 py-2 rounded-xl border transition-all duration-300 flex-1 min-w-0",
       player === 'X' ? "border-indigo-500/30 bg-indigo-500/10" : "border-emerald-500/30 bg-emerald-500/10",
@@ -182,6 +203,16 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       {emoji && (
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 animate-[bounce_1s_infinite] z-30 pointer-events-none">
           <span className="text-5xl drop-shadow-xl filter">{emoji}</span>
+        </div>
+      )}
+
+      {/* Latest Chat Bubble */}
+      {message && (
+        <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-40 w-max max-w-[160px] animate-[fade-in-up_0.25s_ease-out] pointer-events-none">
+          <div className="bg-white text-slate-900 px-3 py-2 rounded-xl rounded-bl-none shadow-xl font-bold text-xs break-words relative">
+            {message}
+            <div className="absolute bottom-[-6px] left-2 w-0 h-0 border-l-[6px] border-l-transparent border-t-[6px] border-t-white border-r-[6px] border-r-transparent"></div>
+          </div>
         </div>
       )}
 
@@ -231,6 +262,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             score={scores.X} 
             isMe={myPlayer === 'X'} 
             emoji={myPlayer === 'X' ? myEmoji : incomingEmoji}
+            message={lastBubble.X}
          />
          <div className="text-slate-600 font-bold text-lg shrink-0">VS</div>
          <PlayerBadge 
@@ -239,6 +271,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             score={scores.O} 
             isMe={myPlayer === 'O'} 
             emoji={myPlayer === 'O' ? myEmoji : incomingEmoji}
+            message={lastBubble.O}
          />
       </div>
 
