@@ -13,10 +13,17 @@
   "dependencies": {
     "canvas-confetti": "1.9.2",
     "clsx": "^2.1.1",
+    "liveemoji": "^2.0.5",
     "lucide-react": "^0.562.0",
     "peerjs": "^1.5.5",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
+  },
+  "overrides": {
+    "liveemoji": {
+      "react": "19.2.3",
+      "react-dom": "19.2.3"
+    }
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

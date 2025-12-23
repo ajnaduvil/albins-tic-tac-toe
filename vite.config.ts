@@ -17,7 +17,9 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
-        }
+        },
+        // Avoid multiple React copies (critical for libraries that bundle/react-depend)
+        dedupe: ['react', 'react-dom']
       }
     };
 });

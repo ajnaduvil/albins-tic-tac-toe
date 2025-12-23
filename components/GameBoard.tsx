@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, GameState, Player } from '../types';
 import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2, Github } from 'lucide-react';
+import { emojiData } from 'liveemoji/dist/emojiData';
 import clsx from 'clsx';
 import confetti from 'canvas-confetti';
 
@@ -26,13 +27,40 @@ interface GameBoardProps {
 
 const EMOJIS = ['😂', '😎', '😡', '😭', '🤔', '👋', '🖕'];
 
-// Helper to render emoji with animation
+const LIVE_EMOJI_MAP = {
+  '😂': 'FaceWithTearsOfJoy',
+  '😎': 'SmilingFaceWithSunglasses',
+  '😡': 'AngryFace',
+  '😭': 'LoudlyCryingFace',
+  '🤔': 'ThinkingFace',
+  '👋': 'WavingHand',
+  '🖕': 'MiddleFinger',
+} satisfies Record<(typeof EMOJIS)[number], keyof typeof emojiData>;
+
+// Helper to render emoji with animation (LiveEmoji; fallback to Unicode)
 const renderEmoji = (emoji: string | null, size: number = 40) => {
   if (!emoji) return null;
+  const liveIcon = (LIVE_EMOJI_MAP as Record<string, keyof typeof emojiData | undefined>)[emoji];
+
+  if (liveIcon) {
+    const src = emojiData[liveIcon];
+    return (
+      <img
+        src={src}
+        alt={liveIcon}
+        className="inline-block transition-transform duration-150 hover:scale-110"
+        style={{ width: `${size}px`, height: `${size}px` }}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+      />
+    );
+  }
+
   return (
     <span 
-      className="inline-block animate-bounce hover:animate-pulse transition-transform hover:scale-110" 
-      style={{ fontSize: `${size}px` }}
+      className="inline-block transition-transform duration-150 hover:scale-110"
+      style={{ fontSize: `${size}px`, lineHeight: 1 }}
     >
       {emoji}
     </span>
@@ -229,14 +257,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           <div className={clsx(
             "relative px-4 py-2.5 rounded-2xl rounded-bl-sm shadow-2xl font-semibold text-xs break-words",
             "backdrop-blur-md border-2",
-            isMe 
-              ? "bg-gradient-to-br from-indigo-500/90 via-indigo-600/90 to-purple-600/90 text-white border-indigo-400/50 shadow-indigo-500/30"
-              : "bg-gradient-to-br from-slate-700/90 via-slate-800/90 to-slate-900/90 text-slate-100 border-slate-600/50 shadow-slate-700/30"
+            player === 'X'
+              ? "bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white border-indigo-300/90 shadow-indigo-500/50 saturate-125"
+              : "bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white border-emerald-300/90 shadow-emerald-500/50 saturate-125"
           )}>
             {/* Glow effect */}
             <div className={clsx(
               "absolute inset-0 rounded-2xl rounded-bl-sm blur-sm opacity-50 -z-10",
-              isMe ? "bg-indigo-400" : "bg-slate-500"
+              player === 'X' ? "bg-indigo-500" : "bg-emerald-500"
             )}></div>
             
             {/* Message content */}
@@ -245,15 +273,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             {/* Speech bubble tail */}
             <div className={clsx(
               "absolute bottom-[-8px] left-4 w-0 h-0",
-              isMe 
-                ? "border-l-[8px] border-l-transparent border-t-[8px] border-t-indigo-500/90 border-r-[8px] border-r-transparent"
-                : "border-l-[8px] border-l-transparent border-t-[8px] border-t-slate-800/90 border-r-[8px] border-r-transparent"
+              player === 'X'
+                ? "border-l-[8px] border-l-transparent border-t-[8px] border-t-indigo-600 border-r-[8px] border-r-transparent"
+                : "border-l-[8px] border-l-transparent border-t-[8px] border-t-emerald-600 border-r-[8px] border-r-transparent"
             )}></div>
             
             {/* Animated pulse ring */}
             <div className={clsx(
               "absolute inset-0 rounded-2xl rounded-bl-sm animate-ping opacity-20",
-              isMe ? "bg-indigo-400" : "bg-slate-400"
+              player === 'X' ? "bg-indigo-400" : "bg-emerald-400"
             )}></div>
           </div>
         </div>
@@ -419,7 +447,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-slate-700 rounded-full transition-all hover:scale-110 active:scale-95"
                     title={emoji}
                 >
-                    <span className="text-base sm:text-xl inline-block animate-bounce hover:animate-pulse">{emoji}</span>
+                    {renderEmoji(emoji, 22)}
                 </button>
             ))}
         </div>
@@ -490,12 +518,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                       m.from === 'X'
                         ? {
                             bubble:
-                              'bg-gradient-to-br from-indigo-500/30 via-indigo-600/30 to-purple-600/30 border-indigo-400/50 text-white shadow-indigo-500/20',
+                              'bg-gradient-to-br from-indigo-500/75 via-indigo-600/75 to-purple-600/75 border-indigo-300/80 text-white shadow-indigo-500/40',
                             label: 'text-indigo-200',
                           }
                         : {
                             bubble:
-                              'bg-gradient-to-br from-emerald-500/30 via-emerald-600/30 to-teal-600/30 border-emerald-400/50 text-white shadow-emerald-500/20',
+                              'bg-gradient-to-br from-emerald-500/75 via-emerald-600/75 to-teal-600/75 border-emerald-300/80 text-white shadow-emerald-500/40',
                             label: 'text-emerald-200',
                           };
                     return (
