@@ -403,7 +403,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       )}
 
       {/* Floating Chat Widget (bottom-right, agent-style) */}
-      <div className="fixed bottom-4 right-4 z-[9999]" ref={chatWidgetRef}>
+      <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end" ref={chatWidgetRef}>
         {isChatOpen && (
           <div className="mb-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80">
             <div className="bg-slate-800/95 backdrop-blur border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
