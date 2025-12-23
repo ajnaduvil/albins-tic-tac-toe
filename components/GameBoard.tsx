@@ -263,7 +263,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <div className={clsx(
       // Slightly tighter vertical rhythm on mobile; keep roomy layout on sm+
-      "w-full max-w-lg flex flex-col items-center gap-4 sm:gap-6 p-3 sm:p-4",
+      "w-full max-w-lg flex flex-col items-center gap-4 sm:gap-6 px-3 pb-3 pt-2 sm:p-4",
       // Make room for the mobile fixed Play Again bar so it doesn't cover content
       isGameOver && "pb-28 sm:pb-4",
       isNudged && "animate-shake"
