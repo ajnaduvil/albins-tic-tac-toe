@@ -201,14 +201,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       
       {/* Emoji Overlay */}
       {emoji && (
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 animate-[bounce_1s_infinite] z-30 pointer-events-none">
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 animate-[bounce_1s_infinite] z-[9998] pointer-events-none">
           <span className="text-5xl drop-shadow-xl filter">{emoji}</span>
         </div>
       )}
 
       {/* Latest Chat Bubble - Fancy Design */}
       {message && (
-        <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-[100] w-max max-w-[180px] animate-[fade-in-up_0.3s_ease-out] animate-float pointer-events-none">
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-[9999] w-max max-w-[180px] animate-[fade-in-up_0.3s_ease-out] animate-float pointer-events-none">
           <div className={clsx(
             "relative px-4 py-2.5 rounded-2xl rounded-bl-sm shadow-2xl font-semibold text-xs break-words",
             "backdrop-blur-md border-2",
@@ -260,7 +260,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     <div className={clsx("w-full max-w-lg flex flex-col items-center gap-6 p-4", isNudged && "animate-shake")}>
       
       {/* Top Bar */}
-      <div className="relative z-30 w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-3 rounded-xl border border-slate-700 shadow-xl">
+      <div className="relative z-20 w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-3 rounded-xl border border-slate-700 shadow-xl">
         <div className="flex flex-col">
           <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-0.5">Room Code</span>
           <div className="flex items-center gap-2 group cursor-pointer" onClick={copyCode}>
@@ -281,7 +281,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {/* Players & Score */}
-      <div className="w-full flex items-center justify-between gap-3">
+      <div className="relative z-30 w-full flex items-center justify-between gap-3">
          <PlayerBadge 
             player="X" 
             name={myPlayer === 'X' ? myName : opponentName} 
