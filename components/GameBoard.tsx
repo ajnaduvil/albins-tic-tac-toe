@@ -90,6 +90,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const isOpponentTurn = status === 'playing' && currentPlayer !== myPlayer;
   const isGameOver = status === 'winner' || status === 'draw';
   const [justNudged, setJustNudged] = useState(false);
+  const prevIsNudgedRef = useRef(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
   
   // Chat State
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -193,8 +195,61 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     navigator.clipboard.writeText(roomCode);
   };
 
+  const playNudgeFeedback = async (kind: 'send' | 'receive') => {
+    // Vibration (best-effort; may be ignored on some browsers/devices)
+    try {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(kind === 'receive' ? [35, 40, 35] : 25);
+      }
+    } catch {
+      // ignore
+    }
+
+    // Sound (best-effort; may be blocked until user interaction)
+    try {
+      const AnyWindow = window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
+      const Ctx = window.AudioContext || AnyWindow.webkitAudioContext;
+      if (!Ctx) return;
+
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') await ctx.resume();
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      const now = ctx.currentTime;
+      const base = kind === 'receive' ? 740 : 880; // receive a bit lower
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(base, now);
+      osc.frequency.exponentialRampToValueAtTime(base * 1.15, now + 0.08);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.16);
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    // Trigger only on rising edge
+    if (isNudged && !prevIsNudgedRef.current) {
+      void playNudgeFeedback('receive');
+    }
+    prevIsNudgedRef.current = isNudged;
+  }, [isNudged]);
+
   const handleNudge = () => {
     if (!justNudged) {
+        void playNudgeFeedback('send');
         onSendNudge();
         setJustNudged(true);
         setTimeout(() => setJustNudged(false), 5000); // Cooldown
