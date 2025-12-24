@@ -917,6 +917,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               const isWinningCell = winningLine?.includes(index);
               const isLastMove = lastMoveIndex === index;
               const canClick = !cell && isMyTurn && status === 'playing';
+              const winningPlayer = winner ?? null;
+              const winnerIsX = winningPlayer === 'X';
               const iconSizeClass = gridSize === 3 ? "w-16 h-16" : gridSize === 4 ? "w-10 h-10" : "w-6 h-6";
 
               return (
@@ -941,15 +943,57 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 >
                   {isWinningCell && (
                     <div className="pointer-events-none absolute inset-0">
-                      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/25 via-yellow-500/10 to-rose-500/10" />
-                      <div className="absolute inset-0 ring-2 ring-amber-300/70 shadow-[0_0_18px_rgba(251,191,36,0.20)]" />
-                      <div className="absolute inset-0 opacity-25">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/35 to-transparent -skew-x-12 animate-[badge-highlight-sweep_3.2s_ease-in-out_infinite]" />
+                      <div
+                        className={clsx(
+                          "absolute inset-0 bg-gradient-to-br",
+                          winnerIsX
+                            ? "from-indigo-500/35 via-purple-500/18 to-fuchsia-500/12"
+                            : "from-emerald-500/30 via-teal-500/16 to-cyan-500/12"
+                        )}
+                      />
+                      <div
+                        className={clsx(
+                          "absolute inset-0 opacity-70",
+                          winnerIsX
+                            ? "bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.26)_0%,rgba(99,102,241,0)_75%)]"
+                            : "bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.22)_0%,rgba(16,185,129,0)_75%)]"
+                        )}
+                      />
+                      <div
+                        className={clsx(
+                          "absolute inset-0 ring-2",
+                          winnerIsX
+                            ? "ring-indigo-200/65 shadow-[0_0_22px_rgba(99,102,241,0.20)]"
+                            : "ring-emerald-200/65 shadow-[0_0_22px_rgba(16,185,129,0.16)]"
+                        )}
+                      />
+                      <div className="absolute inset-0 opacity-20">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -skew-x-12 animate-[badge-highlight-sweep_3.2s_ease-in-out_infinite]" />
                       </div>
-                      <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-amber-200/90 rounded-full blur-[0.5px]" />
-                      <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-200/90 rounded-full blur-[0.5px]" />
-                      <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-amber-200/70 rounded-full blur-[0.5px]" />
-                      <div className="absolute bottom-1 right-1 w-1.5 h-1.5 bg-amber-200/70 rounded-full blur-[0.5px]" />
+                      <div
+                        className={clsx(
+                          "absolute top-1 left-1 w-1.5 h-1.5 rounded-full blur-[0.5px]",
+                          winnerIsX ? "bg-indigo-200/65" : "bg-emerald-200/65"
+                        )}
+                      />
+                      <div
+                        className={clsx(
+                          "absolute top-1 right-1 w-1.5 h-1.5 rounded-full blur-[0.5px]",
+                          winnerIsX ? "bg-indigo-200/65" : "bg-emerald-200/65"
+                        )}
+                      />
+                      <div
+                        className={clsx(
+                          "absolute bottom-1 left-1 w-1.5 h-1.5 rounded-full blur-[0.5px]",
+                          winnerIsX ? "bg-indigo-200/45" : "bg-emerald-200/45"
+                        )}
+                      />
+                      <div
+                        className={clsx(
+                          "absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full blur-[0.5px]",
+                          winnerIsX ? "bg-indigo-200/45" : "bg-emerald-200/45"
+                        )}
+                      />
                     </div>
                   )}
 
@@ -959,7 +1003,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                         className={clsx(
                           iconSizeClass,
                           isWinningCell
-                            ? "text-amber-200 drop-shadow-[0_0_14px_rgba(251,191,36,0.55)]"
+                            ? "text-indigo-200 drop-shadow-[0_0_14px_rgba(99,102,241,0.55)]"
                             : "text-indigo-400"
                         )}
                         strokeWidth={2.5}
@@ -970,7 +1014,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                         className={clsx(
                           iconSizeClass,
                           isWinningCell
-                            ? "text-amber-200 drop-shadow-[0_0_14px_rgba(251,191,36,0.55)]"
+                            ? "text-emerald-200 drop-shadow-[0_0_14px_rgba(16,185,129,0.55)]"
                             : "text-emerald-400"
                         )}
                         strokeWidth={2.5}
