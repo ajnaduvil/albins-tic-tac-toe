@@ -82,6 +82,21 @@ export const isDraw = (board: CellValue[]): boolean => {
   return board.every((cell) => cell !== null);
 };
 
+// "Dead position" draw: no matter how the remaining moves are played,
+// neither player can complete any winning line anymore.
+export const isForcedDraw = (board: CellValue[], winCondition: number): boolean => {
+  const size = Math.sqrt(board.length);
+  // Sanity check for perfect square
+  if (size % 1 !== 0) return false;
+
+  const combinations = getWinningCombinations(size, winCondition);
+
+  const hasPotentialWin = (player: Player) =>
+    combinations.some((combo) => combo.every((i) => board[i] === null || board[i] === player));
+
+  return !hasPotentialWin('X') && !hasPotentialWin('O');
+};
+
 export const getInitialGameState = (startingPlayer: Player = 'X', gridSize: number = 3, winCondition: number = 3): GameState => ({
   board: Array(gridSize * gridSize).fill(null),
   currentPlayer: startingPlayer,

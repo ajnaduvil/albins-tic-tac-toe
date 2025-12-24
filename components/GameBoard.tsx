@@ -481,7 +481,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const getStatusMessage = () => {
     if (status === 'winner') return winner === myPlayer ? 'You Won!' : `${opponentName} Won!`;
-    if (status === 'draw') return "It's a Draw!";
+    if (status === 'draw') {
+      const boardIsFull = board.every((cell) => cell !== null);
+      return boardIsFull ? "It's a Draw!" : "No one can win from here — Draw!";
+    }
     if (isMyTurn) return "Your Turn";
     return `${opponentName}'s Turn`;
   };

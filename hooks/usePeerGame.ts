@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Peer, { DataConnection, PeerOptions } from 'peerjs';
 import { GameState, ConnectionStatus, Player, PeerMessage, ChatMessage } from '../types';
-import { checkWinner, isDraw, getInitialGameState } from '../utils/gameLogic';
+import { checkWinner, isDraw, isForcedDraw, getInitialGameState } from '../utils/gameLogic';
 
 const ID_PREFIX = 'peer-tac-toe-v4-public-'; // Bumped version to v4 to avoid cached/stale IDs on server
 
@@ -94,6 +94,7 @@ export const usePeerGame = () => {
 
       const { winner, line } = checkWinner(newBoard, prev.winCondition);
       const draw = isDraw(newBoard);
+      const forcedDraw = !winner && isForcedDraw(newBoard, prev.winCondition);
 
       if (winner) {
         setScores(current => ({ ...current, [winner]: current[winner] + 1 }));
@@ -103,7 +104,7 @@ export const usePeerGame = () => {
         ...prev,
         board: newBoard,
         currentPlayer: player === 'X' ? 'O' : 'X',
-        status: winner ? 'winner' : draw ? 'draw' : 'playing',
+        status: winner ? 'winner' : (draw || forcedDraw) ? 'draw' : 'playing',
         winner,
         winningLine: line,
       };
