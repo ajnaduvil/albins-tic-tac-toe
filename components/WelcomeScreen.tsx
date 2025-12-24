@@ -76,7 +76,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
 
   const handleStartAi = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) {
+    doStartAi();
+  };
+
+  const doStartAi = () => {
+    if (name.trim() && !isConnecting) {
       savePreferences();
       onStartAi(name.trim(), gridSize, winCondition, aiDifficulty);
     }
@@ -160,8 +164,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
       // remains truly viewport-sticky (transformed ancestors break position: fixed).
       "w-full max-w-md flex flex-col gap-4 sm:gap-6",
       // Make room for the fixed mobile Join CTA bar (join tab only)
-      isJoinTab && "pb-24 sm:pb-0",
-      isAiTab && "pb-0"
+      (isJoinTab || isAiTab) && "pb-24 sm:pb-0"
     )}>
       
       {/* Header */}
@@ -559,7 +562,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
             <button
               type="submit"
               disabled={!canStartAi}
-              className="w-full py-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 mt-4"
+              className="hidden sm:block w-full py-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 mt-4"
             >
               Start Vs AI
             </button>
@@ -585,6 +588,20 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
             className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white rounded-xl font-black transition-all shadow-xl shadow-emerald-500/20"
           >
             {isConnecting ? 'Connecting...' : 'Join Game'}
+          </button>
+        </div>
+      )}
+
+      {/* Mobile fixed Vs AI CTA (sticky) */}
+      {isAiTab && (
+        <div className="sm:hidden fixed left-0 right-0 bottom-0 z-[9999] px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-950/95 backdrop-blur border-t border-white/10">
+          <button
+            type="button"
+            onClick={doStartAi}
+            disabled={!canStartAi}
+            className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white rounded-xl font-black transition-all shadow-xl shadow-amber-500/20"
+          >
+            Start Vs AI
           </button>
         </div>
       )}
