@@ -260,21 +260,21 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
           <form onSubmit={handleCreate} className="space-y-5 animate-fade-in">
             <div className="space-y-3">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Grid Size</label>
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                 {GRID_SIZES.map((size) => (
                   <button
                     key={size}
                     type="button"
                     onClick={() => setGridSize(size)}
                     className={clsx(
-                      "flex flex-col items-center justify-center gap-1 py-3 rounded-xl border-2 transition-all relative overflow-hidden",
+                      "flex flex-col items-center justify-center gap-1 py-2.5 sm:py-3 rounded-xl border-2 transition-all relative overflow-hidden",
                       gridSize === size 
                         ? "border-indigo-500 bg-indigo-500/20 text-indigo-300" 
                         : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
                     )}
                   >
                     {gridSize === size && <div className="absolute top-1 right-1"><Check className="w-3 h-3" /></div>}
-                    <span className="text-lg font-bold leading-none">{size}x{size}</span>
+                    <span className="text-base sm:text-lg font-bold leading-none">{size}x{size}</span>
                   </button>
                 ))}
               </div>
@@ -491,21 +491,21 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
           <form onSubmit={handleStartAi} className="space-y-5 animate-fade-in">
             <div className="space-y-3">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Grid Size</label>
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                 {GRID_SIZES.map((size) => (
                   <button
                     key={size}
                     type="button"
                     onClick={() => setGridSize(size)}
                     className={clsx(
-                      "flex flex-col items-center justify-center gap-1 py-3 rounded-xl border-2 transition-all relative overflow-hidden",
+                      "flex flex-col items-center justify-center gap-1 py-2.5 sm:py-3 rounded-xl border-2 transition-all relative overflow-hidden",
                       gridSize === size
                         ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
                         : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
                     )}
                   >
                     {gridSize === size && <div className="absolute top-1 right-1"><Check className="w-3 h-3" /></div>}
-                    <span className="text-lg font-bold leading-none">{size}x{size}</span>
+                    <span className="text-base sm:text-lg font-bold leading-none">{size}x{size}</span>
                   </button>
                 ))}
               </div>
