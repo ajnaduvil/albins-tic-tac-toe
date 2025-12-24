@@ -1025,6 +1025,78 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               );
             })}
         </div>
+
+        {/* Winning line connector */}
+        {status === 'winner' && winner && winningLine && winningLine.length >= 2 && (() => {
+          const first = winningLine[0]!;
+          const last = winningLine[winningLine.length - 1]!;
+          const rowCol = (i: number) => ({ r: Math.floor(i / gridSize), c: i % gridSize });
+          const a = rowCol(first);
+          const b = rowCol(last);
+          const x1 = ((a.c + 0.5) / gridSize) * 100;
+          const y1 = ((a.r + 0.5) / gridSize) * 100;
+          const x2 = ((b.c + 0.5) / gridSize) * 100;
+          const y2 = ((b.r + 0.5) / gridSize) * 100;
+          const id = winner === 'X' ? 'win-line-x' : 'win-line-o';
+
+          return (
+            <svg
+              className="absolute inset-[3px] pointer-events-none"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id={`${id}-grad`} x1={x1} y1={y1} x2={x2} y2={y2} gradientUnits="userSpaceOnUse">
+                  {winner === 'X' ? (
+                    <>
+                      <stop offset="0%" stopColor="rgba(99,102,241,0.95)" />
+                      <stop offset="50%" stopColor="rgba(168,85,247,0.95)" />
+                      <stop offset="100%" stopColor="rgba(236,72,153,0.92)" />
+                    </>
+                  ) : (
+                    <>
+                      <stop offset="0%" stopColor="rgba(16,185,129,0.92)" />
+                      <stop offset="55%" stopColor="rgba(20,184,166,0.92)" />
+                      <stop offset="100%" stopColor="rgba(6,182,212,0.90)" />
+                    </>
+                  )}
+                </linearGradient>
+                <filter id={`${id}-glow`} x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="1.6" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {/* Glow */}
+              <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke={`url(#${id}-grad)`}
+                strokeWidth="7"
+                strokeLinecap="round"
+                opacity="0.28"
+                filter={`url(#${id}-glow)`}
+              />
+              {/* Crisp connector */}
+              <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke={`url(#${id}-grad)`}
+                strokeWidth="3.25"
+                strokeLinecap="round"
+                opacity="0.78"
+              />
+            </svg>
+          );
+        })()}
       </div>
        <div className="sm:hidden flex items-center justify-center mt-[-6px]">
             <span className="text-xs font-bold text-slate-500 bg-slate-800/50 px-2.5 py-0.5 rounded-full">Goal: {winCondition} in a row</span>
