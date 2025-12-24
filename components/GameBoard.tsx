@@ -873,7 +873,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {/* Emoji Bar */}
-      <div className="w-full flex justify-center gap-1 pt-0.5">
+      <div className="w-full flex justify-center gap-1 pt-0.5 mb-16 sm:mb-0">
         <div className="flex flex-wrap justify-center bg-slate-950/45 backdrop-blur rounded-2xl sm:rounded-full p-1 sm:p-1.5 gap-0.5 sm:gap-1 border border-white/10 shadow-xl ring-1 ring-white/5 max-w-full">
             {EMOJIS.map(emoji => (
                 <button
@@ -919,8 +919,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       <div
         className={clsx(
           "fixed right-4 z-[9999] flex flex-col items-end",
-          // On mobile, keep the floating chat button above the emoji bar / bottom UI
-          isGameOver ? "bottom-24 sm:bottom-4" : "bottom-20 sm:bottom-4"
+          // Keep it at the bottom of the screen (respect safe-area on mobile)
+          isGameOver ? "bottom-24 sm:bottom-4" : "bottom-[calc(0.75rem+env(safe-area-inset-bottom))] sm:bottom-4"
         )}
         ref={chatWidgetRef}
       >
