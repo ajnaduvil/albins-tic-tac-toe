@@ -215,35 +215,41 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
               <button
                 onClick={() => setActiveTab('create')}
                 className={clsx(
-                  "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2",
+                  "flex-1 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2",
                   activeTab === 'create'
                     ? "bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white shadow-lg shadow-indigo-500/20"
                     : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
                 )}
               >
-                <Gamepad2 className="w-4 h-4" /> Create Room
+                <Gamepad2 className="w-4 h-4" />
+                <span className="sm:hidden">Create</span>
+                <span className="hidden sm:inline">Create Room</span>
               </button>
               <button
                 onClick={() => setActiveTab('join')}
                 className={clsx(
-                  "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2",
+                  "flex-1 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2",
                   activeTab === 'join'
                     ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20"
                     : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
                 )}
               >
-                <Users className="w-4 h-4" /> Join Room
+                <Users className="w-4 h-4" />
+                <span className="sm:hidden">Join</span>
+                <span className="hidden sm:inline">Join Room</span>
               </button>
               <button
                 onClick={() => setActiveTab('ai')}
                 className={clsx(
-                  "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2",
+                  "flex-1 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2",
                   activeTab === 'ai'
                     ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/20"
                     : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
                 )}
               >
-                <Cpu className="w-4 h-4" /> Vs AI
+                <Cpu className="w-4 h-4" />
+                <span className="sm:hidden">AI</span>
+                <span className="hidden sm:inline">Vs AI</span>
               </button>
             </div>
 
