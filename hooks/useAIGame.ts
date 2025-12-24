@@ -104,7 +104,9 @@ export const useAIGame = () => {
       level: config.difficulty,
     });
 
-    const delayMs = 350 + Math.floor(Math.random() * 250);
+    // Artificial "thinking" delay to feel more human.
+    // Keep it consistent enough to be noticeable, but jittered to avoid feeling robotic.
+    const delayMs = 750 + Math.floor(Math.random() * 450);
     timeoutRef.current = window.setTimeout(() => {
       timeoutRef.current = null;
       setAiThinking(false);
