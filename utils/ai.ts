@@ -142,11 +142,31 @@ export const chooseAiMove = (params: {
     if (blockNow !== null) return blockNow;
   }
 
-  // Easy: mostly random, with occasional “slightly smarter” pick.
+  // Easy: still imperfect, but should not feel completely clueless.
+  // Typical approach: simple tactics + strong randomness + occasional mistakes.
   if (level === 'easy') {
-    if (Math.random() < 0.8) return moves[Math.floor(Math.random() * moves.length)]!;
-    const scored = moves.map((m) => ({ m, s: evaluateBoard(applyMove(board, m, ai), gridSize, winCondition, ai) }));
-    return pickTopK(scored, 3);
+    // If we must block a 1-move loss, do it *most* of the time (but not always).
+    const mustBlock = findImmediateWin(board, winCondition, opp);
+    if (mustBlock !== null && Math.random() < 0.75) return mustBlock;
+
+    // Small opening preference for center on odd-sized boards (human-like).
+    const center = Math.floor(board.length / 2);
+    if (gridSize % 2 === 1 && board[center] === null && Math.random() < 0.45) return center;
+
+    // Score moves with heuristic, but strongly penalize moves that allow an immediate opponent win.
+    const scored = moves.map((m) => {
+      const after = applyMove(board, m, ai);
+      let s = evaluateBoard(after, gridSize, winCondition, ai);
+      const oppWinNext = findImmediateWin(after, winCondition, opp);
+      if (oppWinNext !== null) s -= 100_000; // avoid obvious blunders
+      return { m, s };
+    });
+
+    // Easy should still be unpredictable:
+    // - often pick from top few reasonable moves
+    // - sometimes do a random move anyway
+    if (Math.random() < 0.8) return pickTopK(scored, 5);
+    return moves[Math.floor(Math.random() * moves.length)]!;
   }
 
   const perfectCase = gridSize === 3 && winCondition === 3;
