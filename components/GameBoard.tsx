@@ -945,7 +945,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                         : "ring-emerald-300/45 shadow-[0_0_12px_rgba(16,185,129,0.16)] hover:ring-emerald-200/70"),
                     canClick && "focus-visible:outline-none focus-visible:ring-2",
                     // Winning cell border glow animation
-                    isWinningCell && (winnerIsX ? "animate-winning-cell-glow-indigo" : "animate-winning-cell-glow-emerald")
+                    isWinningCell && (winnerIsX ? "animate-winning-cell-glow-indigo" : "animate-winning-cell-glow-emerald"),
+                    // Last move highlight border (make it more visible)
+                    isLastMove && !isWinningCell && "ring-2 ring-cyan-300/35 shadow-[0_0_18px_rgba(34,211,238,0.18)]"
                   )}
                 >
                   {isWinningCell && (

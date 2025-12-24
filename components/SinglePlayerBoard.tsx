@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AiLevel, GameState, Player } from '../types';
 import { X, Circle, RefreshCw, LogOut } from 'lucide-react';
 import clsx from 'clsx';
@@ -30,6 +30,8 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
   const { board, currentPlayer, status, winner, winningLine, gridSize, winCondition } = gameState;
   const isGameOver = status === 'winner' || status === 'draw';
   const endCelebrationRef = useRef(false);
+  const [lastMoveIndex, setLastMoveIndex] = useState<number | null>(null);
+  const prevBoardRef = useRef(board);
 
   const statusText = useMemo(() => {
     if (status === 'winner') return winner === 'X' ? 'You Won!' : 'You Lost!';
@@ -40,6 +42,27 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
     if (currentPlayer === 'X') return 'Your Turn';
     return aiThinking ? 'AI thinking…' : "AI's Turn";
   }, [aiThinking, board, currentPlayer, status, winner]);
+
+  // Track last move by comparing board changes (same approach as multiplayer).
+  useEffect(() => {
+    if (prevBoardRef.current.length === board.length) {
+      for (let i = 0; i < board.length; i++) {
+        if (prevBoardRef.current[i] === null && board[i] !== null) {
+          setLastMoveIndex(i);
+          window.setTimeout(() => setLastMoveIndex(null), 10000);
+          break;
+        }
+      }
+    }
+    prevBoardRef.current = [...board];
+  }, [board]);
+
+  // Clear last move highlight on game reset / new match
+  useEffect(() => {
+    if (status === 'playing' && board.every((cell) => cell === null)) {
+      setLastMoveIndex(null);
+    }
+  }, [status, board]);
 
   // Confetti: only when player wins (X) or when game is a draw.
   useEffect(() => {
@@ -205,6 +228,7 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
           >
             {board.map((cell, index) => {
               const isWinningCell = winningLine?.includes(index);
+              const isLastMove = lastMoveIndex === index;
               const canClick = !cell && status === 'playing' && currentPlayer === 'X' && !aiThinking;
               const winnerIsX = winner === 'X';
 
@@ -215,12 +239,14 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
                   disabled={!canClick}
                   className={clsx(
                     'relative flex items-center justify-center transition-all duration-200 w-full h-full overflow-hidden',
-                    isWinningCell ? 'bg-slate-950/70' : 'bg-slate-950/80',
+                    isWinningCell ? 'bg-slate-950/70' : isLastMove ? 'bg-cyan-500/15' : 'bg-slate-950/80',
                     canClick ? 'hover:bg-slate-900/50 cursor-pointer' : 'cursor-default',
                     canClick ? 'ring-2 ring-indigo-300/45 shadow-[0_0_14px_rgba(99,102,241,0.18)] hover:ring-indigo-200/70 focus-visible:outline-none focus-visible:ring-2' : 'ring-1 ring-white/5',
                     'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
                     // Winning cell border glow animation
-                    isWinningCell && (winnerIsX ? 'animate-winning-cell-glow-indigo' : 'animate-winning-cell-glow-emerald')
+                    isWinningCell && (winnerIsX ? 'animate-winning-cell-glow-indigo' : 'animate-winning-cell-glow-emerald'),
+                    // Last move highlight border (like multiplayer)
+                    isLastMove && !isWinningCell && 'ring-2 ring-cyan-300/35 shadow-[0_0_18px_rgba(34,211,238,0.18)]'
                   )}
                 >
                   {isWinningCell && (
