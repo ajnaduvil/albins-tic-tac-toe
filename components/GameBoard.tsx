@@ -836,8 +836,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               // Pronounced X highlight, balanced O highlight when it's the player's turn
               isMyTurn && status === 'playing' ? (
                 myPlayer === 'X'
-                  ? "border-indigo-400/70 ring-2 ring-indigo-400/50 shadow-indigo-400/40 animate-grid-glow-indigo"
-                  : "border-emerald-400/40 ring-2 ring-emerald-400/30 shadow-emerald-400/25 animate-grid-glow-emerald"
+                  ? "border-indigo-300/55 ring-2 ring-indigo-300/55 animate-grid-glow-indigo"
+                  : "border-emerald-300/40 ring-2 ring-emerald-300/50 animate-grid-glow-emerald"
               ) : "border-white/10"
             )}
             style={{
@@ -865,13 +865,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     isLastMove ? "bg-cyan-500/15" : "bg-slate-950/80",
                     canClick ? "hover:bg-slate-900/50 cursor-pointer" : "cursor-default",
                     !cell && !canClick && "opacity-100",
-                    "shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
-                    // Pronounced X cell highlight, balanced O highlight when it's the player's turn
-                    isMyTurn && status === 'playing' && (
-                      myPlayer === 'X'
-                        ? "border border-indigo-400/45 shadow-[0_0_8px_rgba(99,102,241,0.4)]"
-                        : "border border-emerald-400/30 shadow-[0_0_5px_rgba(52,211,153,0.25)]"
-                    )
+                    "shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/5",
+                    // Highlight only actionable cells (reduces visual noise)
+                    canClick &&
+                      (myPlayer === 'X'
+                        ? "ring-indigo-300/45 shadow-[0_0_14px_rgba(99,102,241,0.18)] hover:ring-indigo-200/70"
+                        : "ring-emerald-300/45 shadow-[0_0_12px_rgba(16,185,129,0.16)] hover:ring-emerald-200/70"),
+                    canClick && "focus-visible:outline-none focus-visible:ring-2"
                   )}
                 >
                     {isWinningCell && (

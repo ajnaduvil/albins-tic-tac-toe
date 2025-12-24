@@ -111,15 +111,27 @@ const App: React.FC = () => {
     // 2. Connecting State (for joiners mostly, or hosts initializing)
     if (connectionStatus === 'connecting') {
       return (
-        <div className="flex flex-col items-center gap-6 p-8 bg-slate-800/50 rounded-2xl backdrop-blur-sm border border-slate-700 animate-pulse">
+        <div className="flex flex-col items-center gap-6 p-8 pb-32 bg-slate-800/50 rounded-2xl backdrop-blur-sm border border-slate-700 animate-pulse">
            <Loader2 className="w-12 h-12 text-indigo-400 animate-spin" />
            <div className="text-center">
              <p className="text-slate-300 font-medium text-lg">Connecting to network...</p>
              <p className="text-slate-500 text-sm mt-1">Establishing secure P2P connection</p>
            </div>
-           <button 
+
+           {/* Mobile fixed cancel button */}
+           <div className="sm:hidden fixed left-0 right-0 bottom-0 z-50 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-950/80 backdrop-blur border-t border-white/10">
+             <button
+               onClick={leaveRoom}
+               className="w-full py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-xl font-black transition-all shadow-xl shadow-red-500/20"
+             >
+               Cancel Connection
+             </button>
+           </div>
+
+           {/* Desktop inline cancel button */}
+           <button
              onClick={leaveRoom}
-             className="px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors border border-transparent hover:border-slate-600"
+             className="hidden sm:block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors border border-transparent hover:border-slate-600"
            >
              Cancel
            </button>
@@ -133,7 +145,11 @@ const App: React.FC = () => {
   const isWaitingForOpponent = isHost && roomCode && connectionStatus === 'disconnected';
 
   return (
-    <div className="app-shell min-h-[100svh] w-full flex items-start sm:items-center justify-center px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-y-auto">
+    <div className={clsx(
+      "app-shell min-h-[100svh] w-full flex items-start sm:items-center justify-center px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]",
+      // Only allow scrolling when connected (game active), not during welcome/join
+      connectionStatus === 'connected' ? "overflow-y-auto" : "overflow-hidden"
+    )}>
       <div className="relative z-10 w-full flex justify-center">
         {connectionStatus === 'connected' ? (
           <GameBoard

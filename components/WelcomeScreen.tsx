@@ -453,7 +453,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
 
       {/* Mobile fixed Join CTA (always visible, no cut-off) */}
       {isJoinTab && (
-        <div className="sm:hidden fixed left-0 right-0 bottom-0 z-50 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-950/80 backdrop-blur border-t border-white/10">
+        <div className="sm:hidden fixed left-0 right-0 bottom-0 z-[9999] px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-950/95 backdrop-blur border-t border-white/10">
           <button
             type="button"
             onClick={doJoin}
