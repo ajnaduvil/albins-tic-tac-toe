@@ -696,8 +696,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               className={clsx(
                 "absolute -inset-1 rounded-2xl blur-lg opacity-60",
                 isMe
-                  ? "bg-gradient-to-br from-indigo-500/70 via-purple-500/60 to-fuchsia-500/50"
-                  : "bg-gradient-to-br from-emerald-500/70 via-teal-500/60 to-cyan-500/50"
+                  ? "bg-gradient-to-br from-indigo-400/60 via-purple-400/50 to-fuchsia-400/60"
+                  : "bg-gradient-to-br from-emerald-500/60 via-teal-500/50 to-cyan-500/60"
               )}
             />
 
@@ -706,8 +706,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               className={clsx(
                 "relative rounded-2xl p-[1.5px]",
                 isMe
-                  ? "bg-gradient-to-br from-indigo-300/90 via-purple-300/80 to-fuchsia-300/70"
-                  : "bg-gradient-to-br from-emerald-300/90 via-teal-300/80 to-cyan-300/70"
+                  ? "bg-gradient-to-br from-indigo-400/90 via-purple-400/80 to-fuchsia-400/70"
+                  : "bg-gradient-to-br from-emerald-500/90 via-teal-500/80 to-cyan-500/70"
               )}
             >
               {/* Glass body */}
@@ -1224,12 +1224,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                       m.from === 'X'
                         ? {
                             bubble:
-                              'bg-gradient-to-br from-indigo-500/75 via-indigo-600/75 to-purple-600/75 border-indigo-300/80 text-white shadow-indigo-500/40',
+                              'bg-gradient-to-br from-indigo-500/75 via-indigo-600/75 to-purple-600/75 border-indigo-400/80 text-white shadow-indigo-500/40',
                             label: 'text-indigo-200',
                           }
                         : {
                             bubble:
-                              'bg-gradient-to-br from-emerald-500/75 via-emerald-600/75 to-teal-600/75 border-emerald-300/80 text-white shadow-emerald-500/40',
+                              'bg-gradient-to-br from-emerald-500/75 via-emerald-600/75 to-teal-600/75 border-emerald-400/80 text-white shadow-emerald-500/40',
                             label: 'text-emerald-200',
                           };
                     return (
