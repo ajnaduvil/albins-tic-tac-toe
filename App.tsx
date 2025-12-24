@@ -126,7 +126,7 @@ const App: React.FC = () => {
     // Welcome screen (explicit or fallback on errors/disconnect)
     if (mode === 'welcome' || connectionStatus === 'disconnected' || connectionStatus === 'error') {
       return (
-        <WelcomeScreen
+        <WelcomeScreen 
           onCreate={(name, gridSize, winCondition) => {
             setMode('multiplayer');
             createRoom(name, gridSize, winCondition);
@@ -140,7 +140,7 @@ const App: React.FC = () => {
             setMode('ai');
           }}
           isConnecting={connectionStatus === 'connecting'}
-          error={errorMessage}
+          error={errorMessage} 
         />
       );
     }
