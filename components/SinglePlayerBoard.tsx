@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import type { AiLevel, GameState, Player } from '../types';
 import { X, Circle, RefreshCw, LogOut } from 'lucide-react';
 import clsx from 'clsx';
+import confetti from 'canvas-confetti';
 
 interface SinglePlayerBoardProps {
   gameState: GameState;
@@ -28,6 +29,7 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
 }) => {
   const { board, currentPlayer, status, winner, winningLine, gridSize, winCondition } = gameState;
   const isGameOver = status === 'winner' || status === 'draw';
+  const endCelebrationRef = useRef(false);
 
   const statusText = useMemo(() => {
     if (status === 'winner') return winner === 'X' ? 'You Won!' : 'You Lost!';
@@ -38,6 +40,37 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
     if (currentPlayer === 'X') return 'Your Turn';
     return aiThinking ? 'AI thinking…' : "AI's Turn";
   }, [aiThinking, board, currentPlayer, status, winner]);
+
+  // Confetti: only when player wins (X) or when game is a draw.
+  useEffect(() => {
+    if (status === 'playing') {
+      endCelebrationRef.current = false;
+      return;
+    }
+
+    if (endCelebrationRef.current) return;
+
+    if (status === 'winner' && winner === 'X') {
+      endCelebrationRef.current = true;
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#818cf8', '#a78bfa', '#f472b6', '#60a5fa', '#38bdf8'],
+      });
+      return;
+    }
+
+    if (status === 'draw') {
+      endCelebrationRef.current = true;
+      confetti({
+        particleCount: 110,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#fbbf24', '#f59e0b', '#d97706', '#fcd34d', '#fde047'],
+      });
+    }
+  }, [status, winner]);
 
   const PlayerBadge = ({ player, name, score }: { player: Player; name: string; score: number }) => {
     const isCurrent = status === 'playing' && currentPlayer === player;
@@ -59,28 +92,42 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
     return (
       <div
         className={clsx(
-          'flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-300 flex-1 min-w-0',
+          'relative flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-500 flex-1 min-w-0 overflow-hidden',
           theme.border,
           theme.bg,
           isCurrent && 'scale-[1.02] ring-2',
           isCurrent && theme.ring,
-          isWinner && 'border-amber-400/60 bg-amber-500/10 ring-2 ring-amber-300/60'
+          isWinner && clsx(
+            'opacity-100 scale-[1.06]',
+            'border-amber-400/60 bg-gradient-to-br from-amber-500/20 via-yellow-500/25 to-amber-600/20',
+            'shadow-2xl shadow-amber-500/30',
+            'animate-winner-celebration'
+          )
         )}
       >
-        <div className="w-8 h-8 rounded-lg bg-slate-950/40 border border-white/10 flex items-center justify-center">
+        {isWinner && (
+          <div className="absolute inset-0 rounded-xl opacity-60 animate-badge-highlight-sweep bg-gradient-to-r from-transparent via-amber-400/80 to-transparent" />
+        )}
+
+        <div
+          className={clsx(
+            'relative z-10 w-8 h-8 rounded-lg bg-slate-950/40 border border-white/10 flex items-center justify-center transition-all duration-500',
+            isWinner && 'scale-110 bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 border-amber-300 shadow-lg shadow-amber-400/50 animate-winner-avatar'
+          )}
+        >
           {player === 'X' ? (
             <X className={clsx('w-5 h-5', theme.icon)} strokeWidth={2.5} />
           ) : (
             <Circle className={clsx('w-5 h-5', theme.icon)} strokeWidth={2.5} />
           )}
         </div>
-        <div className="min-w-0">
+        <div className="relative z-10 min-w-0">
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             {player === 'X' ? 'YOU' : 'AI'}
           </div>
           <div className="text-sm font-semibold text-white truncate">{name}</div>
         </div>
-        <div className="ml-auto text-xl font-black text-slate-200">{score}</div>
+        <div className="relative z-10 ml-auto text-xl font-black text-slate-200">{score}</div>
       </div>
     );
   };
@@ -89,7 +136,12 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
 
   return (
     <div className="relative w-full max-w-lg">
-      <div className="flex flex-col items-center gap-3 p-3 rounded-3xl border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden">
+      <div
+        className={clsx(
+          'flex flex-col items-center gap-3 p-3 rounded-3xl border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden',
+          isGameOver && 'pb-24 sm:pb-3'
+        )}
+      >
         {/* Top bar */}
         <div className="w-full flex items-center justify-between bg-slate-950/45 backdrop-blur-sm p-2.5 rounded-xl border border-white/10 shadow-xl ring-1 ring-white/5">
           <div className="min-w-0">
@@ -228,7 +280,28 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
                       </>
                     )}
                   </linearGradient>
+                  <filter id={`${id}-glow`} x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="1.6" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
                 </defs>
+
+                {/* Glow */}
+                <line
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke={`url(#${id}-grad)`}
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                  opacity="0.28"
+                  filter={`url(#${id}-glow)`}
+                />
+                {/* Crisp connector */}
                 <line
                   x1={x1}
                   y1={y1}
@@ -254,7 +327,7 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
           <button
             onClick={onReset}
             className={clsx(
-              'w-full flex items-center justify-center rounded-xl font-bold mt-2 group relative overflow-hidden',
+              'hidden sm:flex w-full items-center justify-center rounded-xl font-bold mt-2 group relative overflow-hidden',
               'px-8 py-3',
               'text-white bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500',
               'hover:from-amber-400 hover:via-orange-400 hover:to-rose-400',
@@ -270,6 +343,22 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
           </button>
         )}
       </div>
+
+      {/* Mobile: sticky Play Again bar (outside containers so position: fixed stays viewport-sticky) */}
+      {isGameOver && (
+        <div className="sm:hidden fixed left-0 right-0 bottom-0 z-[9999] px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-950/95 backdrop-blur border-t border-white/10">
+          <button
+            type="button"
+            onClick={onReset}
+            className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:via-orange-400 hover:to-rose-400 text-white rounded-xl font-black transition-all shadow-xl shadow-amber-500/20 border border-white/10 ring-1 ring-white/10"
+          >
+            <span className="flex items-center justify-center gap-2">
+              <RefreshCw className="w-5 h-5" />
+              Play Again
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
