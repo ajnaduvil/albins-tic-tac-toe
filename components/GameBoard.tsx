@@ -893,7 +893,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Emoji Bar */}
       <div className="w-full flex justify-center gap-1 pt-0.5 mb-16 sm:mb-0">
-        <div className="flex flex-wrap justify-center bg-slate-950/45 backdrop-blur rounded-2xl sm:rounded-full p-1 sm:p-1.5 gap-0.5 sm:gap-1 border border-white/10 shadow-xl ring-1 ring-white/5 max-w-full">
+        <div className="flex justify-center bg-slate-950/45 backdrop-blur rounded-2xl sm:rounded-full p-1 sm:p-1.5 gap-0.5 sm:gap-0.5 border border-white/10 shadow-xl ring-1 ring-white/5">
             {EMOJIS.map(emoji => (
                 <button
                     key={emoji}
@@ -903,7 +903,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-all hover:scale-110 active:scale-95"
                     title={emoji}
                 >
-                    {renderUnicodeEmoji(emoji, 18)}
+                    {renderUnicodeEmoji(emoji, 22)}
                 </button>
             ))}
         </div>
