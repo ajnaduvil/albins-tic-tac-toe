@@ -124,6 +124,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         spread: 70,
         origin: { y: 0.6 }
       });
+    } else if (status === 'draw') {
+      // Attention-grabbing effect for draws
+      confetti({
+        particleCount: 80,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0', '#f1f5f9']
+      });
     }
   }, [status, winner, myPlayer]);
 
@@ -483,7 +491,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     if (status === 'winner') return winner === myPlayer ? 'You Won!' : `${opponentName} Won!`;
     if (status === 'draw') {
       const boardIsFull = board.every((cell) => cell !== null);
-      return boardIsFull ? "It's a Draw!" : "No one can win from here — Draw!";
+      return boardIsFull ? "🤝 It's a Draw!" : "🤝 No one can win from here — Draw!";
     }
     if (isMyTurn) return "Your Turn";
     return `${opponentName}'s Turn`;
@@ -786,7 +794,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           !isOpponentTurn && "overflow-hidden",
           status === 'winner' && winner === myPlayer ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30" :
           status === 'winner' && winner !== myPlayer ? "bg-red-500/10 text-red-300 border border-red-500/30" :
-          status === 'draw' ? "bg-slate-800/50 text-slate-300 border border-slate-700/50" :
+          status === 'draw' ? "bg-amber-500/15 text-amber-300 border border-amber-400/40 shadow-lg shadow-amber-500/20 animate-pulse" :
           isMyTurn ? "bg-indigo-500/10 text-indigo-300 border border-indigo-500/30" : "bg-slate-800/30 text-slate-400 border border-slate-700/30"
         )}>
           <span className="flex-1 text-center">{getStatusMessage()}</span>
@@ -824,11 +832,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       <div className="w-full max-w-[400px] aspect-square relative">
         <div
             className={clsx(
-              "absolute inset-0 bg-slate-700/50 border border-white/10 shadow-2xl rounded-none transition-all duration-500",
-              // Grid glow effect when it's the player's turn
-              isMyTurn && status === 'playing' && (
-                myPlayer === 'X' ? "animate-grid-glow-indigo ring-2 ring-indigo-400/30" : "animate-grid-glow-emerald ring-2 ring-emerald-400/30"
-              )
+              "absolute inset-0 bg-slate-700/50 border shadow-2xl rounded-none transition-all duration-500",
+              // Pronounced X highlight, balanced O highlight when it's the player's turn
+              isMyTurn && status === 'playing' ? (
+                myPlayer === 'X'
+                  ? "border-indigo-400/70 ring-2 ring-indigo-400/50 shadow-indigo-400/40 animate-grid-glow-indigo"
+                  : "border-emerald-400/40 ring-2 ring-emerald-400/30 shadow-emerald-400/25 animate-grid-glow-emerald"
+              ) : "border-white/10"
             )}
             style={{
                 display: 'grid',
@@ -851,11 +861,17 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   disabled={!canClick}
                   className={clsx(
                     "relative flex items-center justify-center transition-all duration-200 w-full h-full",
-                    isWinningCell ? "bg-amber-900/50" : 
+                    isWinningCell ? "bg-amber-900/50" :
                     isLastMove ? "bg-cyan-500/15" : "bg-slate-950/80",
                     canClick ? "hover:bg-slate-900/50 cursor-pointer" : "cursor-default",
-                    !cell && !canClick && "opacity-100", 
-                    "shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                    !cell && !canClick && "opacity-100",
+                    "shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
+                    // Pronounced X cell highlight, balanced O highlight when it's the player's turn
+                    isMyTurn && status === 'playing' && (
+                      myPlayer === 'X'
+                        ? "border border-indigo-400/45 shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+                        : "border border-emerald-400/30 shadow-[0_0_5px_rgba(52,211,153,0.25)]"
+                    )
                   )}
                 >
                     {isWinningCell && (
