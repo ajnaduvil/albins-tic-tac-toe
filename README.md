@@ -5,7 +5,7 @@
   <p>Real-time, peer-to-peer Tic Tac Toe — create a room, share a 3-digit code, and play instantly.</p>
 
   <p>
-    <a href="https://albins-tic-tac-toe.vercel.app/">🌐 Live Demo</a> • 
+    <a href="https://albins-tic-tac-toe.vercel.app/">🌐 Live App</a> • 
     <a href="https://github.com/ajnaduvil/albins-tic-tac-toe">📦 GitHub</a>
   </p>
 </div>
