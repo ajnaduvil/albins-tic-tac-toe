@@ -219,14 +219,70 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   }, [isChatOpen]);
 
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
   
   const copyCode = async () => {
+    setCopyError(null);
+    
+    // Always try fallback first for better compatibility
+    const fallbackCopy = (): boolean => {
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = roomCode;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '0';
+        textArea.style.top = '0';
+        textArea.style.width = '2em';
+        textArea.style.height = '2em';
+        textArea.style.padding = '0';
+        textArea.style.border = 'none';
+        textArea.style.outline = 'none';
+        textArea.style.boxShadow = 'none';
+        textArea.style.background = 'transparent';
+        textArea.style.opacity = '0';
+        textArea.setAttribute('readonly', '');
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        textArea.setSelectionRange(0, 99999); // For mobile devices
+        
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        return successful;
+      } catch (err) {
+        console.error('Fallback copy failed:', err);
+        return false;
+      }
+    };
+
     try {
-      await navigator.clipboard.writeText(roomCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(roomCode);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+          return;
+        } catch (clipboardErr) {
+          console.warn('Clipboard API failed, trying fallback:', clipboardErr);
+          // Fall through to fallback
+        }
+      }
+      
+      // Use fallback method
+      if (fallbackCopy()) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        throw new Error('Both clipboard methods failed');
+      }
     } catch (err) {
       console.error('Failed to copy:', err);
+      setCopyError('Failed to copy. Please copy manually.');
+      setTimeout(() => setCopyError(null), 3000);
+      // Still show copied state briefly to indicate attempt
+      setCopied(true);
+      setTimeout(() => setCopied(false), 500);
     }
   };
 
@@ -391,31 +447,39 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <div className={clsx(
-      // Slightly tighter vertical rhythm on mobile; keep roomy layout on sm+
-      "w-full max-w-lg flex flex-col items-center gap-4 sm:gap-6 px-3 pb-3 pt-2 sm:p-4",
+      // Tighter vertical rhythm for better space utilization
+      "w-full max-w-lg flex flex-col items-center gap-2 sm:gap-4 px-2 pb-2 pt-1 sm:px-3 sm:pb-3 sm:pt-2",
       // Make room for the mobile fixed Play Again bar so it doesn't cover content
-      isGameOver && "pb-28 sm:pb-4",
+      isGameOver && "pb-24 sm:pb-3",
       isNudged && "animate-shake"
     )}>
       
       {/* Top Bar */}
-      <div className="relative z-20 w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-2.5 sm:p-3 rounded-xl border border-slate-700 shadow-xl">
+      <div className="relative z-20 w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-2 sm:p-2.5 rounded-xl border border-slate-700 shadow-xl">
         <div className="flex flex-col">
           <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-0.5">Room Code</span>
           <div className="flex items-center gap-2 group">
             <span className="text-xl font-mono font-bold text-white tracking-widest group-hover:text-indigo-400 transition-colors">{roomCode}</span>
-            <button
-              onClick={copyCode}
-              className={clsx(
-                "p-1.5 rounded-lg transition-all",
-                copied 
-                  ? "bg-emerald-500/20 text-emerald-400" 
-                  : "text-slate-500 hover:text-indigo-400 hover:bg-slate-700/50"
+            <div className="relative">
+              <button
+                onClick={copyCode}
+                className={clsx(
+                  "p-1.5 rounded-lg transition-all duration-200",
+                  copied 
+                    ? "bg-emerald-500/30 text-emerald-300 ring-2 ring-emerald-400/60 shadow-lg shadow-emerald-500/20" 
+                    : "text-slate-500 hover:text-indigo-400 hover:bg-slate-700/50",
+                  copyError && "bg-red-500/20 text-red-400 ring-2 ring-red-500/50"
+                )}
+                title={copyError ? copyError : copied ? "Copied!" : "Copy room code"}
+              >
+                <Copy className={clsx("w-3.5 h-3.5 transition-all duration-200", copied && "scale-125")} />
+              </button>
+              {copied && !copyError && (
+                <span className="absolute -top-9 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-md whitespace-nowrap pointer-events-none z-50 shadow-lg animate-pulse">
+                  ✓ Copied!
+                </span>
               )}
-              title={copied ? "Copied!" : "Copy room code"}
-            >
-              <Copy className={clsx("w-3.5 h-3.5 transition-transform", copied && "scale-110")} />
-            </button>
+            </div>
           </div>
         </div>
         
@@ -441,7 +505,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {/* Players & Score */}
-      <div className="relative z-30 w-full grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
+      <div className="relative z-30 w-full grid grid-cols-2 gap-1.5 sm:flex sm:items-center sm:justify-between sm:gap-2">
          <PlayerBadge 
             player="X" 
             name={myPlayer === 'X' ? myName : opponentName} 
@@ -463,7 +527,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Status Bar */}
       <div className="w-full relative z-10">
-        <div className={clsx("w-full py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl text-center font-bold text-base sm:text-lg transition-all duration-300 shadow-lg",
+        <div className={clsx("w-full py-2 sm:py-2.5 px-4 sm:px-5 rounded-xl text-center font-bold text-base sm:text-lg transition-all duration-300 shadow-lg",
           status === 'winner' && winner === myPlayer ? "bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-500/20" :
           status === 'winner' && winner !== myPlayer ? "bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-red-500/20" :
           status === 'draw' ? "bg-slate-700 text-slate-200" :
@@ -532,13 +596,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             })}
         </div>
       </div>
-       <div className="sm:hidden flex items-center justify-center mt-[-8px]">
-            <span className="text-xs font-bold text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Goal: {winCondition} in a row</span>
+       <div className="sm:hidden flex items-center justify-center mt-[-6px]">
+            <span className="text-xs font-bold text-slate-500 bg-slate-800/50 px-2.5 py-0.5 rounded-full">Goal: {winCondition} in a row</span>
       </div>
 
       {/* Emoji Bar */}
-      <div className="w-full flex justify-center gap-1 pt-1">
-        <div className="flex flex-wrap justify-center bg-slate-800/80 backdrop-blur rounded-2xl sm:rounded-full p-1.5 sm:p-2 gap-0.5 sm:gap-1 border border-slate-700 shadow-xl max-w-full">
+      <div className="w-full flex justify-center gap-1 pt-0.5">
+        <div className="flex flex-wrap justify-center bg-slate-800/80 backdrop-blur rounded-2xl sm:rounded-full p-1 sm:p-1.5 gap-0.5 sm:gap-1 border border-slate-700 shadow-xl max-w-full">
             {EMOJIS.map(emoji => (
                 <button
                     key={emoji}
@@ -567,7 +631,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           </button>
 
           {/* Mobile: fixed bottom action bar (no scroll needed) */}
-          <div className="sm:hidden fixed left-0 right-0 bottom-0 z-[9998] px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-900/80 backdrop-blur border-t border-slate-700">
+          <div className="sm:hidden fixed left-0 right-0 bottom-0 z-[9998] px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-slate-900/80 backdrop-blur border-t border-slate-700">
             <button
               onClick={onReset}
               className="w-full flex items-center justify-center gap-2 py-3 bg-white text-slate-900 rounded-xl font-black hover:bg-indigo-50 transition-colors shadow-xl"

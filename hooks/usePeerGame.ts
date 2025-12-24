@@ -7,9 +7,9 @@ const ID_PREFIX = 'peer-tac-toe-v4-public-'; // Bumped version to v4 to avoid ca
 
 // Base STUN servers (always available as fallback)
 const BASE_STUN_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
 ];
 
 export const usePeerGame = () => {

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Gamepad2, Users, User, Grid3x3, Grid, LayoutGrid, Trophy, Check, Delete, Github } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Gamepad2, Users, User, Grid3x3, Grid, LayoutGrid, Trophy, Check, Delete, Github, Clipboard } from 'lucide-react';
 import clsx from 'clsx';
 
 interface WelcomeScreenProps {
@@ -12,6 +12,7 @@ interface WelcomeScreenProps {
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, isConnecting, error }) => {
   const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
   const isJoinTab = activeTab === 'join';
+  const isDev = (import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV === true;
   
   // Persisted State Initialization
   const [name, setName] = useState(() => {
@@ -27,6 +28,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
   });
   
   const [roomCode, setRoomCode] = useState('');
+  const [pasteError, setPasteError] = useState<string | null>(null);
+  const codeInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-adjust win condition if grid size becomes smaller than current win condition
   useEffect(() => {
@@ -66,6 +69,67 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
     }
   };
 
+  const handlePaste = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setPasteError(null);
+
+    const activeEl = document.activeElement as HTMLElement | null;
+    const activeElDesc = activeEl
+      ? `${activeEl.tagName.toLowerCase()}${activeEl.id ? `#${activeEl.id}` : ''}${activeEl.className ? `.${String(activeEl.className).split(' ').filter(Boolean).slice(0, 2).join('.')}` : ''}`
+      : 'none';
+
+    if (isDev) {
+      console.groupCollapsed('[clipboard] Paste button clicked');
+      console.log('isSecureContext:', (globalThis as any).isSecureContext);
+      console.log('navigator.clipboard available:', !!navigator.clipboard);
+      console.log('navigator.clipboard.readText available:', !!navigator.clipboard?.readText);
+      console.log('activeElement before:', activeElDesc);
+      console.groupEnd();
+    }
+
+    // Always keep focus on the code field so Ctrl+V goes to the right place
+    codeInputRef.current?.focus({ preventScroll: true });
+    codeInputRef.current?.select();
+
+    // Best effort: read clipboard directly (only works when browser allows it)
+    try {
+      if (!navigator.clipboard?.readText) {
+        throw Object.assign(new Error('Clipboard API not available'), { name: 'ClipboardUnavailable' });
+      }
+
+      const text = await navigator.clipboard.readText();
+      if (isDev) console.log('[clipboard] readText result:', { text });
+
+      const digits = text.trim().replace(/\D/g, '');
+      if (!/^\d{3}$/.test(digits)) {
+        setPasteError('Code must be exactly 3 digits (e.g., "123")');
+        setTimeout(() => setPasteError(null), 3000);
+        return;
+      }
+
+      setRoomCode(digits);
+      setPasteError(null);
+    } catch (err: any) {
+      const name = err?.name || 'UnknownError';
+      const message = err?.message || String(err);
+
+      if (isDev) {
+        console.groupCollapsed('[clipboard] readText FAILED');
+        console.log('name:', name);
+        console.log('message:', message);
+        console.log('error:', err);
+        console.log('activeElement after focus:', document.activeElement);
+        console.groupEnd();
+      }
+
+      // We cannot programmatically paste without clipboard read permission.
+      // Keep focus on the code field and show a precise reason instead of a vague "timed out".
+      setPasteError(`Clipboard blocked (${name}). Click the code field and press Ctrl+V.`);
+      setTimeout(() => setPasteError(null), 4000);
+    }
+  };
+
   const canJoin = !!name.trim() && roomCode.length === 3 && !isConnecting;
 
   return (
@@ -80,7 +144,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
         <h1 className="text-3xl font-black tracking-tight flex items-center justify-center gap-3">
           <Gamepad2 className="w-8 h-8 text-indigo-400" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">
-            Albin's Tic Tac Toe
+          Albin's Tic Tac Toe
           </span>
           <span className="text-[10px] font-semibold text-slate-400/60 tracking-normal translate-y-[2px] select-none">
             v{__APP_VERSION__}
@@ -208,10 +272,50 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
             <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-3 pb-6 sm:pb-0">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Room Code</label>
               
-              {/* Code Display */}
+              {/* Code Display with Inline Paste Button */}
               <div className="relative group">
-                <Gamepad2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors" />
-                <div className="w-full bg-slate-900/50 border-2 border-slate-700 focus-within:border-emerald-500 rounded-xl py-3 sm:py-4 pl-12 pr-4 text-slate-100 font-mono tracking-[0.25em] sm:tracking-[0.3em] text-xl sm:text-2xl text-center min-h-[52px] sm:min-h-[60px] flex items-center justify-center">
+                <Gamepad2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors z-10" />
+                {/* Hidden input for paste functionality */}
+                <input
+                  ref={codeInputRef}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={roomCode}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 3);
+                    setRoomCode(val);
+                    setPasteError(null);
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 3);
+                    if (isDev) console.log('[clipboard] input onPaste:', { pasted });
+                    if (pasted.length === 3) {
+                      setRoomCode(pasted);
+                      setPasteError(null);
+                    } else if (pasted.length > 0) {
+                      setPasteError('Code must be exactly 3 digits');
+                      setTimeout(() => setPasteError(null), 2000);
+                    }
+                  }}
+                  onFocus={(e) => {
+                    e.target.select();
+                  }}
+                  onClick={(e) => {
+                    e.target.select();
+                  }}
+                  className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-transparent caret-transparent cursor-text z-[1]"
+                  placeholder=""
+                  maxLength={3}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                  tabIndex={0}
+                />
+                <div className="w-full bg-slate-900/50 border-2 border-slate-700 group-focus-within:border-emerald-500 rounded-xl py-3 sm:py-4 pl-12 pr-12 text-slate-100 font-mono tracking-[0.25em] sm:tracking-[0.3em] text-xl sm:text-2xl text-center min-h-[52px] sm:min-h-[60px] flex items-center justify-center pointer-events-none relative z-0">
                   {roomCode.padEnd(3, '•').split('').map((char, idx) => (
                     <span key={idx} className={clsx(
                       "inline-block w-8",
@@ -221,7 +325,29 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                     </span>
                   ))}
                 </div>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    // Critical: prevent the button from stealing focus so Ctrl+V pastes into the code field.
+                    e.preventDefault();
+                    e.stopPropagation();
+                    codeInputRef.current?.focus({ preventScroll: true });
+                    codeInputRef.current?.select();
+                  }}
+                  onClick={handlePaste}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-600 rounded-lg text-slate-400 hover:text-slate-300 transition-all active:scale-95 z-10"
+                  title="Paste from clipboard"
+                >
+                  <Clipboard className="w-4 h-4" />
+                </button>
               </div>
+
+              {/* Paste Error */}
+              {pasteError && (
+                <div className="text-center text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  {pasteError}
+                </div>
+              )}
 
               {/* Numeric Keypad */}
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
