@@ -697,14 +697,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <div className={clsx(
       // Tighter vertical rhythm for better space utilization
-      "w-full max-w-lg flex flex-col items-center gap-2 sm:gap-4 px-2 pb-2 pt-1 sm:px-3 sm:pb-3 sm:pt-2",
+      "relative w-full max-w-lg flex flex-col items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-3xl border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden",
       // Make room for the mobile fixed Play Again bar so it doesn't cover content
       isGameOver && "pb-24 sm:pb-3",
       isNudged && "animate-shake"
     )}>
       
       {/* Top Bar */}
-      <div className="relative z-20 w-full flex items-center justify-between bg-slate-800/80 backdrop-blur-sm p-2 sm:p-2.5 rounded-xl border border-slate-700 shadow-xl">
+      <div className="relative z-20 w-full flex items-center justify-between bg-slate-950/45 backdrop-blur-sm p-2 sm:p-2.5 rounded-xl border border-white/10 shadow-xl ring-1 ring-white/5">
         <div className="flex flex-col">
           <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-0.5">Room Code</span>
           <div className="flex items-center gap-2 group">
@@ -741,13 +741,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               href="https://github.com/ajnaduvil/albins-tic-tac-toe" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="p-2 bg-slate-700/50 hover:bg-slate-600/50 text-slate-400 hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-600"
+              className="p-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg transition-colors border border-white/10"
               title="View on GitHub"
               aria-label="View source code on GitHub"
             >
               <Github className="w-4 h-4" />
             </a>
-            <button onClick={onLeave} className="p-2 bg-slate-700/50 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/30">
+            <button onClick={onLeave} className="p-2 bg-white/5 hover:bg-red-500/15 text-slate-400 hover:text-red-300 rounded-lg transition-colors border border-white/10 hover:border-red-500/30">
                <LogOut className="w-4 h-4" />
             </button>
         </div>
@@ -821,7 +821,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       <div className="w-full max-w-[400px] aspect-square relative">
         <div
             className={clsx(
-              "absolute inset-0 bg-slate-700 shadow-2xl transition-all duration-500",
+              "absolute inset-0 bg-slate-700/50 border border-white/10 shadow-2xl rounded-none transition-all duration-500",
               // Grid glow effect when it's the player's turn
               isMyTurn && status === 'playing' && (
                 myPlayer === 'X' ? "animate-grid-glow-indigo ring-2 ring-indigo-400/30" : "animate-grid-glow-emerald ring-2 ring-emerald-400/30"
@@ -831,8 +831,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 display: 'grid',
                 gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
                 gridTemplateRows: `repeat(${gridSize}, 1fr)`,
-                gap: '2px',
-                padding: '2px'
+                gap: '3px',
+                padding: '3px'
             }}
         >
             {board.map((cell, index) => {
@@ -849,9 +849,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   className={clsx(
                     "relative flex items-center justify-center transition-all duration-200 w-full h-full",
                     isWinningCell ? "bg-amber-900/50" : 
-                    isLastMove ? "bg-cyan-500/20" : "bg-slate-900",
-                    canClick ? "hover:bg-slate-800 cursor-pointer" : "cursor-default",
+                    isLastMove ? "bg-cyan-500/15" : "bg-slate-950/80",
+                    canClick ? "hover:bg-slate-900/50 cursor-pointer" : "cursor-default",
                     !cell && !canClick && "opacity-100", 
+                    "shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                   )}
                 >
                     {isWinningCell && (
@@ -873,14 +874,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Emoji Bar */}
       <div className="w-full flex justify-center gap-1 pt-0.5">
-        <div className="flex flex-wrap justify-center bg-slate-800/80 backdrop-blur rounded-2xl sm:rounded-full p-1 sm:p-1.5 gap-0.5 sm:gap-1 border border-slate-700 shadow-xl max-w-full">
+        <div className="flex flex-wrap justify-center bg-slate-950/45 backdrop-blur rounded-2xl sm:rounded-full p-1 sm:p-1.5 gap-0.5 sm:gap-1 border border-white/10 shadow-xl ring-1 ring-white/5 max-w-full">
             {EMOJIS.map(emoji => (
                 <button
                     key={emoji}
                     onClick={() => {
                         onSendEmoji(emoji);
                     }}
-                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-slate-700 rounded-full transition-all hover:scale-110 active:scale-95"
+                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-all hover:scale-110 active:scale-95"
                     title={emoji}
                 >
                     {renderUnicodeEmoji(emoji, 18)}
@@ -918,7 +919,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       <div
         className={clsx(
           "fixed right-4 z-[9999] flex flex-col items-end",
-          isGameOver ? "bottom-24 sm:bottom-4" : "bottom-4"
+          // On mobile, keep the floating chat button above the emoji bar / bottom UI
+          isGameOver ? "bottom-24 sm:bottom-4" : "bottom-20 sm:bottom-4"
         )}
         ref={chatWidgetRef}
       >
@@ -1051,7 +1053,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
         <button
           onClick={() => setIsChatOpen(o => !o)}
-          className="relative w-14 h-14 rounded-full bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 transition-colors flex items-center justify-center border border-indigo-400/20"
+          className="relative w-14 h-14 rounded-full bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 text-white shadow-xl shadow-indigo-500/25 hover:from-indigo-500 hover:to-fuchsia-500 transition-all flex items-center justify-center border border-white/10 ring-1 ring-white/10"
           aria-label={isChatOpen ? "Close chat" : "Open chat"}
         >
           <MessageSquare className="w-6 h-6" />

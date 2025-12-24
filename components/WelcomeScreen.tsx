@@ -162,44 +162,51 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
         </a>
       </div>
 
-      <div className="bg-slate-800/50 backdrop-blur-xl p-4 sm:p-6 rounded-3xl border border-slate-700 shadow-2xl">
-        {/* Name Input - Always Visible */}
-        <div className="mb-4 sm:mb-6">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-1.5 block">Your Name</label>
-          <div className="relative group">
-            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your nickname"
-              className="w-full bg-slate-900/50 border border-slate-700 focus:border-indigo-500 rounded-xl py-3 sm:py-3.5 pl-12 pr-4 text-slate-100 placeholder:text-slate-600 focus:outline-none transition-all"
-              maxLength={12}
-            />
-          </div>
-        </div>
+      <div className="relative rounded-3xl p-[1px] bg-gradient-to-br from-white/15 via-white/5 to-white/10 shadow-2xl">
+        <div className="relative bg-slate-950/45 backdrop-blur-xl p-4 sm:p-6 rounded-3xl border border-white/10 overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent" />
+          <div className="relative">
+            {/* Name Input - Always Visible */}
+            <div className="mb-4 sm:mb-6">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-1.5 block">Your Name</label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-300 transition-colors" />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your nickname"
+                  className="w-full bg-slate-950/40 border border-white/10 focus:border-indigo-400/70 focus:ring-2 focus:ring-indigo-500/20 rounded-xl py-3 sm:py-3.5 pl-12 pr-4 text-slate-100 placeholder:text-slate-600 focus:outline-none transition-all"
+                  maxLength={12}
+                />
+              </div>
+            </div>
 
-        {/* Tabs */}
-        <div className="flex p-1 bg-slate-900/50 rounded-xl mb-6 border border-slate-700/50">
-          <button
-            onClick={() => setActiveTab('create')}
-            className={clsx(
-              "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2",
-              activeTab === 'create' ? "bg-indigo-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"
-            )}
-          >
-            <Gamepad2 className="w-4 h-4" /> Create Room
-          </button>
-          <button
-            onClick={() => setActiveTab('join')}
-            className={clsx(
-              "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2",
-              activeTab === 'join' ? "bg-emerald-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"
-            )}
-          >
-            <Users className="w-4 h-4" /> Join Room
-          </button>
-        </div>
+            {/* Tabs */}
+            <div className="flex p-1 bg-slate-950/40 rounded-xl mb-6 border border-white/10">
+              <button
+                onClick={() => setActiveTab('create')}
+                className={clsx(
+                  "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2",
+                  activeTab === 'create'
+                    ? "bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white shadow-lg shadow-indigo-500/20"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                )}
+              >
+                <Gamepad2 className="w-4 h-4" /> Create Room
+              </button>
+              <button
+                onClick={() => setActiveTab('join')}
+                className={clsx(
+                  "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2",
+                  activeTab === 'join'
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                )}
+              >
+                <Users className="w-4 h-4" /> Join Room
+              </button>
+            </div>
 
         {/* Create Tab Content */}
         {activeTab === 'create' && (
@@ -258,7 +265,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
             <button
               type="submit"
               disabled={isConnecting || !name.trim()}
-              className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 mt-4"
+              className="w-full py-4 bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 mt-4"
             >
               {isConnecting ? 'Creating...' : 'Create Room & Play'}
             </button>
@@ -428,7 +435,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
             <button
               type="submit"
               disabled={!canJoin}
-              className="hidden sm:block w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20"
+              className="hidden sm:block w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20"
             >
               {isConnecting ? 'Connecting...' : 'Join Game'}
             </button>
@@ -440,16 +447,18 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
             {error}
           </div>
         )}
+          </div>
+        </div>
       </div>
 
       {/* Mobile fixed Join CTA (always visible, no cut-off) */}
       {isJoinTab && (
-        <div className="sm:hidden fixed left-0 right-0 bottom-0 z-50 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-900/85 backdrop-blur border-t border-slate-700">
+        <div className="sm:hidden fixed left-0 right-0 bottom-0 z-50 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-950/80 backdrop-blur border-t border-white/10">
           <button
             type="button"
             onClick={doJoin}
             disabled={!canJoin}
-            className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-black transition-all shadow-xl shadow-emerald-500/20"
+            className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white rounded-xl font-black transition-all shadow-xl shadow-emerald-500/20"
           >
             {isConnecting ? 'Connecting...' : 'Join Game'}
           </button>

@@ -133,13 +133,7 @@ const App: React.FC = () => {
   const isWaitingForOpponent = isHost && roomCode && connectionStatus === 'disconnected';
 
   return (
-    <div className="min-h-[100svh] w-full bg-[#0f172a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0f172a] to-black flex items-start sm:items-center justify-center px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-y-auto">
-      {/* Background Decor */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[100px]" />
-         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-500/5 blur-[100px]" />
-      </div>
-
+    <div className="app-shell min-h-[100svh] w-full flex items-start sm:items-center justify-center px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-y-auto">
       <div className="relative z-10 w-full flex justify-center">
         {connectionStatus === 'connected' ? (
           <GameBoard
@@ -162,7 +156,7 @@ const App: React.FC = () => {
             chatMessages={chatMessages}
           />
         ) : isWaitingForOpponent ? (
-          <div className="flex flex-col items-center gap-6 p-8 bg-slate-800/80 rounded-2xl border border-slate-700 max-w-sm w-full text-center shadow-2xl">
+          <div className="flex flex-col items-center gap-6 p-8 bg-slate-950/45 backdrop-blur-xl rounded-2xl border border-white/10 ring-1 ring-white/5 max-w-sm w-full text-center shadow-2xl">
             <div className="relative">
               <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 animate-pulse"></div>
               <Loader2 className="w-16 h-16 text-indigo-400 animate-spin relative z-10" />
@@ -173,7 +167,7 @@ const App: React.FC = () => {
               <p className="text-slate-400">Share this code with your friend</p>
             </div>
 
-            <div className="bg-slate-900 border-2 border-indigo-500/30 px-8 py-4 rounded-xl flex items-center gap-4">
+            <div className="bg-slate-950/50 border border-white/10 px-8 py-4 rounded-xl flex items-center gap-4 shadow-xl">
               <span className="text-4xl font-mono font-bold text-white tracking-[0.2em]">{roomCode}</span>
               <button
                 onClick={copyRoomCode}
