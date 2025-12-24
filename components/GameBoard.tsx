@@ -698,14 +698,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   return (
-    <div className={clsx(
-      // Tighter vertical rhythm for better space utilization
-      "relative w-full max-w-lg flex flex-col items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-3xl border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden",
-      // Make room for the mobile fixed Play Again bar so it doesn't cover content
-      isGameOver && "pb-24 sm:pb-3",
-      isNudged && "animate-shake"
-    )}>
-      
+    // Outer wrapper must remain free of filter/transform so position: fixed stays viewport-sticky on mobile.
+    <div className="relative w-full max-w-lg">
+      <div className={clsx(
+        // Visual card container
+        "flex flex-col items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-3xl border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-2xl ring-1 ring-white/5 overflow-hidden",
+        // Make room for the mobile fixed Play Again bar so it doesn't cover content
+        isGameOver && "pb-24 sm:pb-3",
+      )}>
+
+        {/* Important: apply shake on an inner wrapper so it doesn't break position: fixed */}
+        <div className={clsx("w-full flex flex-col items-center gap-2 sm:gap-4", isNudged && "animate-shake")}>
+
       {/* Top Bar */}
       <div className="relative z-20 w-full flex items-center justify-between bg-slate-950/45 backdrop-blur-sm p-2 sm:p-2.5 rounded-xl border border-white/10 shadow-xl ring-1 ring-white/5">
         <div className="flex flex-col">
@@ -912,18 +916,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             <RefreshCw className="w-5 h-5" />
             Play Again
           </button>
-
-          {/* Mobile: fixed bottom action bar (no scroll needed) */}
-          <div className="sm:hidden fixed left-0 right-0 bottom-0 z-[9998] px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-slate-900/80 backdrop-blur border-t border-slate-700">
-            <button
-              onClick={onReset}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-white text-slate-900 rounded-xl font-black hover:bg-indigo-50 transition-colors shadow-xl"
-            >
-              <RefreshCw className="w-5 h-5" />
-              Play Again
-            </button>
-          </div>
         </>
+      )}
+
+      </div>
+      </div>
+
+      {/* Mobile: fixed bottom action bar (must be outside transformed/filtered containers) */}
+      {isGameOver && (
+        <div className="sm:hidden fixed left-0 right-0 bottom-0 z-[9998] px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-slate-900/80 backdrop-blur border-t border-slate-700">
+          <button
+            onClick={onReset}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-white text-slate-900 rounded-xl font-black hover:bg-indigo-50 transition-colors shadow-xl"
+          >
+            <RefreshCw className="w-5 h-5" />
+            Play Again
+          </button>
+        </div>
       )}
 
       {/* Floating Chat Widget (bottom-right, agent-style) */}
