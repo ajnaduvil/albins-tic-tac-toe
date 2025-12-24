@@ -94,7 +94,8 @@ export const usePeerGame = () => {
 
       const { winner, line } = checkWinner(newBoard, prev.winCondition);
       const draw = isDraw(newBoard);
-      const forcedDraw = !winner && isForcedDraw(newBoard, prev.winCondition);
+      const nextPlayer: Player = player === 'X' ? 'O' : 'X';
+      const forcedDraw = !winner && isForcedDraw(newBoard, prev.winCondition, nextPlayer);
 
       if (winner) {
         setScores(current => ({ ...current, [winner]: current[winner] + 1 }));
@@ -103,7 +104,7 @@ export const usePeerGame = () => {
       return {
         ...prev,
         board: newBoard,
-        currentPlayer: player === 'X' ? 'O' : 'X',
+        currentPlayer: nextPlayer,
         status: winner ? 'winner' : (draw || forcedDraw) ? 'draw' : 'playing',
         winner,
         winningLine: line,

@@ -84,15 +84,39 @@ export const isDraw = (board: CellValue[]): boolean => {
 
 // "Dead position" draw: no matter how the remaining moves are played,
 // neither player can complete any winning line anymore.
-export const isForcedDraw = (board: CellValue[], winCondition: number): boolean => {
+export const isForcedDraw = (board: CellValue[], winCondition: number, nextPlayer: Player): boolean => {
   const size = Math.sqrt(board.length);
   // Sanity check for perfect square
   if (size % 1 !== 0) return false;
 
   const combinations = getWinningCombinations(size, winCondition);
 
-  const hasPotentialWin = (player: Player) =>
-    combinations.some((combo) => combo.every((i) => board[i] === null || board[i] === player));
+  const emptyCount = board.reduce((acc, cell) => (cell === null ? acc + 1 : acc), 0);
+  const movesRemainingFor = (player: Player) => {
+    // Remaining turns alternate starting with `nextPlayer`.
+    // Example: if 5 empty cells and nextPlayer is X, X gets 3 turns, O gets 2.
+    const first = Math.ceil(emptyCount / 2);
+    const second = Math.floor(emptyCount / 2);
+    return player === nextPlayer ? first : second;
+  };
+
+  const hasPotentialWin = (player: Player) => {
+    const opponent: Player = player === 'X' ? 'O' : 'X';
+    const remainingTurns = movesRemainingFor(player);
+
+    return combinations.some((combo) => {
+      // If opponent already occupies any cell in this segment, it's blocked.
+      for (const i of combo) {
+        if (board[i] === opponent) return false;
+      }
+      // Player needs to fill all empty cells in this segment, which must be <= their remaining turns.
+      let needed = 0;
+      for (const i of combo) {
+        if (board[i] === null) needed++;
+      }
+      return needed <= remainingTurns;
+    });
+  };
 
   return !hasPotentialWin('X') && !hasPotentialWin('O');
 };
