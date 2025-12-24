@@ -2,14 +2,31 @@
 
 This folder contains screenshots of the Albin's Tic Tac Toe application.
 
-## Screenshot List
+## Screenshot Gallery
 
-1. **01-welcome-screen.png** - Home page with Create Room tab active, showing grid size and win condition options
-2. **02-join-room-tab.png** - Join Room tab showing room code input with numeric keypad
-3. **03-ai-mode-tab.png** - AI mode tab showing difficulty selection (Easy, Medium, Hard, Extreme)
-4. **04-ai-game-board.png** - AI game board at the start of a game (empty board)
-5. **05-ai-game-in-progress.png** - AI game board with moves in progress (X and O placed)
-6. **06-waiting-for-opponent.png** - Multiplayer room created screen showing room code and waiting state
+### 1. Welcome Screen
+![Welcome Screen](./01-welcome-screen.png)
+Home page with Create Room tab active, showing grid size and win condition options
+
+### 2. Join Room Tab
+![Join Room Tab](./02-join-room-tab.png)
+Join Room tab showing room code input with numeric keypad
+
+### 3. AI Mode Tab
+![AI Mode Tab](./03-ai-mode-tab.png)
+AI mode tab showing difficulty selection (Easy, Medium, Hard, Extreme)
+
+### 4. AI Game Board
+![AI Game Board](./04-ai-game-board.png)
+AI game board at the start of a game (empty board)
+
+### 5. AI Game In Progress
+![AI Game In Progress](./05-ai-game-in-progress.png)
+AI game board with moves in progress (X and O placed)
+
+### 6. Waiting for Opponent
+![Waiting for Opponent](./06-waiting-for-opponent.png)
+Multiplayer room created screen showing room code and waiting state
 
 ## Usage
 

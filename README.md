@@ -15,6 +15,25 @@ This is a **browser-based multiplayer Tic Tac Toe** game built with **React + Ty
 
 No accounts, no backend: the host creates a room code, the other player joins, and the game state syncs directly between browsers.
 
+## Screenshots
+
+<div align="center">
+  <img src="screenshots/01-welcome-screen.png" alt="Welcome Screen" width="600"/>
+  <p><em>Welcome screen with game mode selection</em></p>
+</div>
+
+<div align="center">
+  <img src="screenshots/04-ai-game-board.png" alt="AI Game Board" width="600"/>
+  <p><em>AI game mode with customizable difficulty</em></p>
+</div>
+
+<div align="center">
+  <img src="screenshots/06-waiting-for-opponent.png" alt="Waiting for Opponent" width="600"/>
+  <p><em>Multiplayer room creation with shareable code</em></p>
+</div>
+
+See all screenshots in the [Screenshots Gallery](screenshots/README.md).
+
 ## Features
 
 - **P2P real-time multiplayer** via WebRTC (PeerJS)
