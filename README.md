@@ -4,7 +4,8 @@
 
   <p>
     <a href="https://albins-tic-tac-toe.vercel.app/">🌐 Live App</a> • 
-    <a href="https://github.com/ajnaduvil/albins-tic-tac-toe">📦 GitHub</a>
+    <a href="https://github.com/ajnaduvil/albins-tic-tac-toe">📦 GitHub</a> • 
+    <a href="screenshots/README.md">📸 Screenshots</a>
   </p>
 </div>
 
