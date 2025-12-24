@@ -1,6 +1,4 @@
 <div align="center">
-  <img width="1200" height="475" alt="Albin's Tic Tac Toe banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-
   <h1>Albin's Tic Tac Toe</h1>
   <p>Real-time, peer-to-peer Tic Tac Toe — create a room, share a 3-digit code, and play instantly.</p>
 
