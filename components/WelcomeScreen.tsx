@@ -33,7 +33,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
   const [aiDifficulty, setAiDifficulty] = useState<AiLevel>(() => {
     try {
       const raw = localStorage.getItem('peer_tactoe_pref_ai_level');
-      return raw === 'easy' || raw === 'medium' || raw === 'hard' ? raw : 'medium';
+      return raw === 'easy' || raw === 'medium' || raw === 'hard' || raw === 'extreme' ? raw : 'medium';
     } catch {
       return 'medium';
     }
@@ -543,14 +543,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
 
             <div className="space-y-3">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Difficulty</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['easy', 'medium', 'hard'] as const).map((lvl) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(['easy', 'medium', 'hard', 'extreme'] as const).map((lvl) => (
                   <button
                     key={lvl}
                     type="button"
                     onClick={() => setAiDifficulty(lvl)}
                     className={clsx(
-                      "py-3 rounded-xl border-2 font-bold text-sm transition-all",
+                      "py-3 rounded-xl border-2 font-bold text-xs sm:text-sm transition-all",
                       aiDifficulty === lvl
                         ? "border-amber-500 bg-amber-500/20 text-amber-200"
                         : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
@@ -561,7 +561,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                 ))}
               </div>
               <p className="text-[10px] text-slate-500 ml-1">
-                Hard is unbeatable on 3x3. Larger boards use a time-limited search for performance.
+                Hard is unbeatable on 3x3. Extreme thinks longer on larger boards for tougher play.
               </p>
             </div>
 

@@ -136,7 +136,7 @@ export const chooseAiMove = (params: {
 
   const opp = other(ai);
 
-  // Medium/Hard: block immediate loss
+  // Medium/Hard/Extreme: block immediate loss
   if (level !== 'easy') {
     const blockNow = findImmediateWin(board, winCondition, opp);
     if (blockNow !== null) return blockNow;
@@ -170,18 +170,18 @@ export const chooseAiMove = (params: {
   }
 
   const perfectCase = gridSize === 3 && winCondition === 3;
-  const timeBudgetMs = level === 'hard' ? 80 : 30;
+  const timeBudgetMs = level === 'extreme' ? 220 : level === 'hard' ? 80 : 30;
   const deadline = nowMs() + timeBudgetMs;
 
   // Depth tuning by board size (kept conservative to avoid UI stalls)
   const depth =
     perfectCase ? moves.length :
-    gridSize === 4 ? (level === 'hard' ? 5 : 4) :
-    gridSize === 5 ? (level === 'hard' ? 4 : 3) :
-    /* 6x6 */       (level === 'hard' ? 3 : 2);
+    gridSize === 4 ? (level === 'extreme' ? 6 : level === 'hard' ? 5 : 4) :
+    gridSize === 5 ? (level === 'extreme' ? 4 : level === 'hard' ? 4 : 3) :
+    /* 6x6 */       (level === 'extreme' ? 3 : level === 'hard' ? 3 : 2);
 
-  // Medium: pick among top few moves to feel human
-  const topK = level === 'hard' ? 1 : 3;
+  // Medium: pick among top few moves to feel human. Hard/Extreme: deterministic best move.
+  const topK = (level === 'hard' || level === 'extreme') ? 1 : 3;
 
   const scored = moves.map((m) => {
     const b = applyMove(board, m, ai);
