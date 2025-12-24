@@ -592,29 +592,45 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Status Bar */}
       <div className="w-full relative z-10">
-        <div className={clsx("w-full py-2 sm:py-2.5 px-4 sm:px-5 rounded-xl text-center font-bold text-base sm:text-lg transition-all duration-300 shadow-lg",
+        <div className={clsx(
+          "w-full py-2 sm:py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all duration-300 shadow-lg",
+          "flex items-center justify-center relative",
+          // Only hide overflow when button is not present
+          !isOpponentTurn && "overflow-hidden",
           status === 'winner' && winner === myPlayer ? "bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-500/20" :
           status === 'winner' && winner !== myPlayer ? "bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-red-500/20" :
           status === 'draw' ? "bg-slate-700 text-slate-200" :
           isMyTurn ? "bg-indigo-500 text-white shadow-indigo-500/20 scale-105" : "bg-slate-800 text-slate-400"
         )}>
-          {getStatusMessage()}
-        </div>
-        
-        {/* Nudge Button */}
-        {isOpponentTurn && (
+          <span className="flex-1 text-center">{getStatusMessage()}</span>
+          
+          {/* Nudge Button - Integrated within status bar */}
+          {isOpponentTurn && (
             <button 
-                onClick={handleNudge}
-                disabled={justNudged}
-                className={clsx(
-                    "absolute top-1/2 -translate-y-1/2 right-[-10px] sm:right-[-12px] p-2 rounded-full shadow-lg transition-all z-20",
-                    justNudged ? "bg-slate-700 text-slate-500 cursor-not-allowed" : "bg-amber-500 text-white hover:bg-amber-400 hover:scale-110 animate-bounce"
-                )}
-                title="Nudge opponent"
+              onClick={handleNudge}
+              disabled={justNudged}
+              className={clsx(
+                "absolute right-2 sm:right-3 p-2 sm:p-2.5 rounded-lg transition-all duration-300 z-20",
+                "backdrop-blur-sm border shadow-lg flex items-center justify-center",
+                justNudged 
+                  ? "bg-slate-700/80 text-slate-500 cursor-not-allowed border-slate-600/50" 
+                  : clsx(
+                      "bg-gradient-to-br from-amber-500 to-amber-600 text-white",
+                      "border-amber-400/30 shadow-amber-500/30",
+                      "hover:from-amber-400 hover:to-amber-500 hover:scale-105 hover:shadow-xl hover:shadow-amber-500/40",
+                      "active:scale-95"
+                    )
+              )}
+              title={justNudged ? "Cooldown active" : "Nudge opponent"}
+              aria-label="Nudge opponent"
             >
-                <BellRing className="w-5 h-5" />
+              <BellRing className={clsx(
+                "w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300",
+                !justNudged && "animate-bell-ring hover:rotate-12"
+              )} />
             </button>
-        )}
+          )}
+        </div>
       </div>
 
       {/* The Grid */}
