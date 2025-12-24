@@ -192,7 +192,7 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
             className={clsx(
               'absolute inset-0 bg-slate-700/50 border shadow-2xl transition-all duration-500',
               currentPlayer === 'X' && status === 'playing' && !aiThinking
-                ? 'border-indigo-300/55 ring-2 ring-indigo-300/55'
+                ? 'border-indigo-300/55 ring-2 ring-indigo-300/55 animate-grid-glow-indigo'
                 : 'border-white/10'
             )}
             style={{
@@ -217,8 +217,8 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
                     'relative flex items-center justify-center transition-all duration-200 w-full h-full overflow-hidden',
                     isWinningCell ? 'bg-slate-950/70' : 'bg-slate-950/80',
                     canClick ? 'hover:bg-slate-900/50 cursor-pointer' : 'cursor-default',
-                    'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/5',
-                    canClick && 'ring-indigo-300/45 hover:ring-indigo-200/70 focus-visible:outline-none focus-visible:ring-2'
+                    canClick ? 'ring-2 ring-indigo-300/45 shadow-[0_0_14px_rgba(99,102,241,0.18)] hover:ring-indigo-200/70 focus-visible:outline-none focus-visible:ring-2' : 'ring-1 ring-white/5',
+                    'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]'
                   )}
                 >
                   {isWinningCell && (
