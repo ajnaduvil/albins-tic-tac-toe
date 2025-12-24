@@ -813,16 +813,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Goal</span>
                  <span className="text-xs font-bold text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">{winCondition} in a row</span>
             </div>
-            <a 
-              href="https://github.com/ajnaduvil/albins-tic-tac-toe" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="p-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg transition-colors border border-white/10"
-              title="View on GitHub"
-              aria-label="View source code on GitHub"
-            >
-              <Github className="w-4 h-4" />
-            </a>
             <button onClick={onLeave} className="p-2 bg-white/5 hover:bg-red-500/15 text-slate-400 hover:text-red-300 rounded-lg transition-colors border border-white/10 hover:border-red-500/30">
                <LogOut className="w-4 h-4" />
             </button>
@@ -1340,6 +1330,19 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             </span>
           )}
         </button>
+      </div>
+
+      {/* Developer Credit Footer */}
+      <div className="mt-4 text-center">
+        <a
+          href="https://github.com/ajnaduvil"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:text-slate-300 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500/50 text-sm"
+        >
+          <Github className="w-4 h-4" />
+          <span>Developed by ajnaduvil</span>
+        </a>
       </div>
 
     </div>
