@@ -94,6 +94,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const [justNudged, setJustNudged] = useState(false);
   const prevIsNudgedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const endSoundPlayedRef = useRef(false);
   const [lastMoveIndex, setLastMoveIndex] = useState<number | null>(null);
   const prevBoardRef = useRef<CellValue[]>(board);
   
@@ -127,6 +128,21 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   }, [status, winner, myPlayer]);
 
+  // End-of-match sound (play once per match)
+  useEffect(() => {
+    if (!myPlayer) return;
+    if (!isGameOver) return;
+    if (endSoundPlayedRef.current) return;
+
+    endSoundPlayedRef.current = true;
+
+    if (status === 'draw') {
+      void playEndSound('draw');
+    } else if (status === 'winner') {
+      void playEndSound(winner === myPlayer ? 'win' : 'lose');
+    }
+  }, [isGameOver, myPlayer, status, winner]);
+
   // Track last move by comparing board changes
   useEffect(() => {
     if (prevBoardRef.current.length === board.length) {
@@ -151,6 +167,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   useEffect(() => {
     if (status === 'idle' || (status === 'playing' && board.every(cell => cell === null))) {
       setLastMoveIndex(null);
+      endSoundPlayedRef.current = false;
     }
   }, [status, board]);
 
@@ -342,6 +359,58 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
         osc.start(now);
         osc.stop(now + duration);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const playEndSound = async (kind: 'win' | 'lose' | 'draw') => {
+    // End-of-match sound (best-effort; may be blocked until user interaction)
+    try {
+      const AnyWindow = window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
+      const Ctx = window.AudioContext || AnyWindow.webkitAudioContext;
+      if (!Ctx) return;
+
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') await ctx.resume();
+
+      const now = ctx.currentTime;
+
+      const beep = (freq: number, startOffset: number, duration: number, volume: number, type: OscillatorType = 'sine') => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now + startOffset);
+
+        // Gentle envelope to avoid clicks
+        gain.gain.setValueAtTime(0, now + startOffset);
+        gain.gain.linearRampToValueAtTime(volume, now + startOffset + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + startOffset + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + startOffset);
+        osc.stop(now + startOffset + duration);
+      };
+
+      if (kind === 'win') {
+        // Bright ascending triad
+        beep(523.25, 0.00, 0.14, 0.12); // C5
+        beep(659.25, 0.12, 0.14, 0.12); // E5
+        beep(783.99, 0.24, 0.18, 0.12); // G5
+      } else if (kind === 'lose') {
+        // Soft descending tones
+        beep(440.0, 0.00, 0.16, 0.10); // A4
+        beep(349.23, 0.14, 0.16, 0.10); // F4
+        beep(261.63, 0.28, 0.20, 0.10); // C4
+      } else {
+        // Neutral double-beep
+        beep(392.0, 0.00, 0.14, 0.10); // G4
+        beep(392.0, 0.20, 0.16, 0.10); // G4
       }
     } catch {
       // ignore
@@ -911,10 +980,27 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           {/* Desktop / larger screens: keep the inline button */}
           <button
             onClick={onReset}
-            className="hidden sm:flex items-center gap-2 px-8 py-3 bg-white text-slate-900 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg animate-fade-in-up mt-2"
+            className={clsx(
+              "hidden sm:flex items-center justify-center rounded-xl font-bold mt-2 group relative overflow-hidden",
+              "px-8 py-3",
+              "text-white bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500",
+              "hover:from-amber-400 hover:via-orange-400 hover:to-rose-400",
+              "border border-white/10 ring-1 ring-white/10",
+              "shadow-xl shadow-amber-500/20 transition-all active:scale-[0.98]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/70",
+              "animate-fade-in-up"
+            )}
           >
-            <RefreshCw className="w-5 h-5" />
-            Play Again
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -skew-x-12 group-hover:animate-[badge-highlight-sweep_1.4s_ease-in-out_1]" />
+            </span>
+            <span className="relative z-10 flex items-center gap-2">
+              <RefreshCw className="w-5 h-5" />
+              Play Again
+            </span>
           </button>
         </>
       )}
@@ -924,13 +1010,29 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Mobile: fixed bottom action bar (must be outside transformed/filtered containers) */}
       {isGameOver && (
-        <div className="sm:hidden fixed left-0 right-0 bottom-0 z-[9998] px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-slate-900/80 backdrop-blur border-t border-slate-700">
+        <div className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-0 z-[9998] pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] w-[min(15rem,calc(100vw-10.5rem))]">
           <button
             onClick={onReset}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-white text-slate-900 rounded-xl font-black hover:bg-indigo-50 transition-colors shadow-xl"
+            className={clsx(
+              "w-full flex items-center justify-center rounded-xl font-black group relative overflow-hidden",
+              "py-3",
+              "text-white bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500",
+              "hover:from-amber-400 hover:via-orange-400 hover:to-rose-400",
+              "border border-white/10 ring-1 ring-white/10",
+              "shadow-xl shadow-amber-500/20 transition-all active:scale-[0.98]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/70"
+            )}
           >
-            <RefreshCw className="w-5 h-5" />
-            Play Again
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -skew-x-12 group-hover:animate-[badge-highlight-sweep_1.4s_ease-in-out_1]" />
+            </span>
+            <span className="relative z-10 flex items-center gap-2">
+              <RefreshCw className="w-5 h-5" />
+              Play Again
+            </span>
           </button>
         </div>
       )}
@@ -940,7 +1042,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         className={clsx(
           "fixed right-4 z-[9999] flex flex-col items-end",
           // Keep it at the bottom of the screen (respect safe-area on mobile)
-          isGameOver ? "bottom-24 sm:bottom-4" : "bottom-[calc(0.75rem+env(safe-area-inset-bottom))] sm:bottom-4"
+          "bottom-[calc(0.75rem+env(safe-area-inset-bottom))] sm:bottom-4"
         )}
         ref={chatWidgetRef}
       >
