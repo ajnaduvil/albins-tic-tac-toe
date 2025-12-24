@@ -676,7 +676,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               "animate-emoji-glow",
               isMe
                 ? "bg-gradient-to-br from-indigo-400/60 via-purple-400/50 to-fuchsia-400/60"
-                : "bg-gradient-to-br from-emerald-400/60 via-teal-400/50 to-cyan-400/60"
+                : "bg-gradient-to-br from-green-400/60 via-teal-400/50 to-cyan-400/60"
             )} style={{ transform: 'scale(1.5)' }} />
             
             {/* Emoji with enhanced styling */}
@@ -697,7 +697,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 "absolute -inset-1 rounded-2xl blur-lg opacity-60",
                 isMe
                   ? "bg-gradient-to-br from-indigo-400/60 via-purple-400/50 to-fuchsia-400/60"
-                  : "bg-gradient-to-br from-emerald-500/60 via-teal-500/50 to-cyan-500/60"
+                  : "bg-gradient-to-br from-green-400/60 via-teal-400/50 to-cyan-400/60"
               )}
             />
 
@@ -707,7 +707,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 "relative rounded-2xl p-[1.5px]",
                 isMe
                   ? "bg-gradient-to-br from-indigo-400/90 via-purple-400/80 to-fuchsia-400/70"
-                  : "bg-gradient-to-br from-emerald-500/90 via-teal-500/80 to-cyan-500/70"
+                  : "bg-gradient-to-br from-green-400/90 via-teal-400/80 to-cyan-400/70"
               )}
             >
               {/* Glass body */}
@@ -1229,8 +1229,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                           }
                         : {
                             bubble:
-                              'bg-gradient-to-br from-emerald-500/75 via-emerald-600/75 to-teal-600/75 border-emerald-400/80 text-white shadow-emerald-500/40',
-                            label: 'text-emerald-200',
+                              'bg-gradient-to-br from-green-500/75 via-teal-600/75 to-cyan-600/75 border-green-400/80 text-white shadow-green-500/40',
+                            label: 'text-green-200',
                           };
                     return (
                       <div key={m.id} className={clsx("flex", isMe ? "justify-end" : "justify-start")}>
