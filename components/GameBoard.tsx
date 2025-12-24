@@ -381,6 +381,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const PlayerBadge = ({ player, name, score, isMe, emoji, message }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null, message?: string | null }) => {
     const isCurrentPlayerTurn = currentPlayer === player && status === 'playing';
+    const isWinner = status === 'winner' && winner === player;
+    const badgeRef = useRef<HTMLDivElement>(null);
     const playerTheme = player === 'X'
       ? {
           border: "border-indigo-500/40",
@@ -401,13 +403,50 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           avatarBorder: "border-emerald-400/60"
         };
 
+    // Confetti effect for winner at regular intervals
+    useEffect(() => {
+      if (!isWinner || !badgeRef.current) return;
+
+      const triggerConfetti = () => {
+        const rect = badgeRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        // Calculate position relative to viewport
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { x, y },
+          colors: ['#fbbf24', '#f59e0b', '#d97706', '#fcd34d', '#fde047'], // Golden/amber colors
+          gravity: 0.8,
+          ticks: 200,
+        });
+      };
+
+      // Initial confetti burst
+      triggerConfetti();
+
+      // Set up interval for regular confetti pops
+      const interval = setInterval(() => {
+        triggerConfetti();
+      }, 2000); // Every 2 seconds
+
+      return () => clearInterval(interval);
+    }, [isWinner]);
+
     return (
-      <div className={clsx(
+      <div 
+        ref={badgeRef}
+        className={clsx(
         "relative flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl border transition-all duration-500 flex-1 min-w-0 overflow-hidden",
         playerTheme.border,
         playerTheme.bg,
+        // Winner celebration animation
+        isWinner && "animate-winner-celebration",
         // Enhanced glow and animation when it's the player's turn
-        isCurrentPlayerTurn
+        isCurrentPlayerTurn && !isWinner
           ? clsx(
               "opacity-100 scale-105",
               "border-opacity-80 bg-opacity-25",
@@ -417,11 +456,26 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 ? "bg-gradient-to-br from-indigo-500/20 via-indigo-600/30 to-purple-600/20"
                 : "bg-gradient-to-br from-emerald-500/20 via-emerald-600/30 to-teal-600/20"
             )
-          : "opacity-70 hover:opacity-85"
+          : !isWinner && "opacity-70 hover:opacity-85",
+        // Winner styling
+        isWinner && clsx(
+          "opacity-100 scale-110",
+          "border-amber-400/60 bg-gradient-to-br from-amber-500/20 via-yellow-500/30 to-amber-600/20",
+          "shadow-2xl shadow-amber-500/40"
+        )
       )}>
 
+        {/* Winner celebration highlight */}
+        {isWinner && (
+          <div className={clsx(
+            "absolute inset-0 rounded-xl opacity-60",
+            "animate-badge-highlight-sweep",
+            "bg-gradient-to-r from-transparent via-amber-400/80 to-transparent"
+          )} />
+        )}
+
         {/* Internal highlight animation when it's the player's turn */}
-        {isCurrentPlayerTurn && (
+        {isCurrentPlayerTurn && !isWinner && (
           <div className={clsx(
             "absolute inset-0 rounded-xl opacity-40",
             "animate-badge-highlight-sweep",
@@ -475,7 +529,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       <div className={clsx(
         "flex-shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-2 transition-all duration-500 relative overflow-hidden",
-        isCurrentPlayerTurn
+        isWinner
+          ? clsx(
+              "scale-125 animate-winner-avatar",
+              "bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 border-amber-300 shadow-lg shadow-amber-400/60"
+            )
+          : isCurrentPlayerTurn
           ? clsx(
               "scale-110",
               player === 'X'
@@ -489,11 +548,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         {player === 'X' ? (
           <X className={clsx(
             "w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 relative z-10",
+            isWinner ? "text-amber-100 scale-110 drop-shadow-lg" :
             isCurrentPlayerTurn ? "text-indigo-200 scale-110" : "text-indigo-400"
           )} strokeWidth={2.5} />
         ) : (
           <Circle className={clsx(
             "w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 relative z-10",
+            isWinner ? "text-amber-100 scale-110 drop-shadow-lg" :
             isCurrentPlayerTurn ? "text-emerald-200 scale-110" : "text-emerald-400"
           )} strokeWidth={2.5} />
         )}
