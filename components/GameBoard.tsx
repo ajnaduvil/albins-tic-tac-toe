@@ -925,8 +925,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   onClick={() => onMove(index)}
                   disabled={!canClick}
                   className={clsx(
-                    "relative flex items-center justify-center transition-all duration-200 w-full h-full",
-                    isWinningCell ? "bg-amber-900/50" :
+                    "relative flex items-center justify-center transition-all duration-200 w-full h-full overflow-hidden",
+                    isWinningCell ? "bg-slate-950/70" :
                     isLastMove ? "bg-cyan-500/15" : "bg-slate-950/80",
                     canClick ? "hover:bg-slate-900/50 cursor-pointer" : "cursor-default",
                     !cell && !canClick && "opacity-100",
@@ -939,13 +939,43 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     canClick && "focus-visible:outline-none focus-visible:ring-2"
                   )}
                 >
-                    {isWinningCell && (
-                        <div className="absolute inset-0 border-4 border-amber-400 opacity-50 animate-pulse"></div>
-                    )}
+                  {isWinningCell && (
+                    <div className="pointer-events-none absolute inset-0">
+                      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/25 via-yellow-500/10 to-rose-500/10" />
+                      <div className="absolute inset-0 ring-2 ring-amber-300/70 shadow-[0_0_18px_rgba(251,191,36,0.20)]" />
+                      <div className="absolute inset-0 opacity-25">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/35 to-transparent -skew-x-12 animate-[badge-highlight-sweep_3.2s_ease-in-out_infinite]" />
+                      </div>
+                      <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-amber-200/90 rounded-full blur-[0.5px]" />
+                      <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-200/90 rounded-full blur-[0.5px]" />
+                      <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-amber-200/70 rounded-full blur-[0.5px]" />
+                      <div className="absolute bottom-1 right-1 w-1.5 h-1.5 bg-amber-200/70 rounded-full blur-[0.5px]" />
+                    </div>
+                  )}
 
-                  <div className={clsx("transition-all duration-300 transform scale-0", cell && "scale-100")}>
-                    {cell === 'X' && <X className={clsx(iconSizeClass, isWinningCell ? "text-amber-400" : "text-indigo-400")} strokeWidth={2.5} />}
-                    {cell === 'O' && <Circle className={clsx(iconSizeClass, isWinningCell ? "text-amber-400" : "text-emerald-400")} strokeWidth={2.5} />}
+                  <div className={clsx("relative z-10 transition-all duration-300 transform scale-0", cell && "scale-100")}>
+                    {cell === 'X' && (
+                      <X
+                        className={clsx(
+                          iconSizeClass,
+                          isWinningCell
+                            ? "text-amber-200 drop-shadow-[0_0_14px_rgba(251,191,36,0.55)]"
+                            : "text-indigo-400"
+                        )}
+                        strokeWidth={2.5}
+                      />
+                    )}
+                    {cell === 'O' && (
+                      <Circle
+                        className={clsx(
+                          iconSizeClass,
+                          isWinningCell
+                            ? "text-amber-200 drop-shadow-[0_0_14px_rgba(251,191,36,0.55)]"
+                            : "text-emerald-400"
+                        )}
+                        strokeWidth={2.5}
+                      />
+                    )}
                   </div>
                 </button>
               );
