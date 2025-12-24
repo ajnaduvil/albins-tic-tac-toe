@@ -554,14 +554,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* The Grid */}
       <div className="w-full max-w-[400px] aspect-square relative">
-        <div 
-            className="absolute inset-0 bg-slate-700 rounded-xl overflow-hidden shadow-2xl"
+        <div
+            className="absolute inset-0 bg-slate-700 shadow-2xl"
             style={{
                 display: 'grid',
                 gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
                 gridTemplateRows: `repeat(${gridSize}, 1fr)`,
-                gap: '2px', 
-                padding: '2px' 
+                gap: '2px',
+                padding: '2px'
             }}
         >
             {board.map((cell, index) => {
