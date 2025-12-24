@@ -547,7 +547,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       <div 
         ref={badgeRef}
         className={clsx(
-        "relative flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl border transition-all duration-500 flex-1 min-w-0 overflow-hidden",
+        "relative flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl border transition-all duration-500 flex-1 min-w-0",
+        // Only hide overflow when emoji is not present, to allow emoji to show outside
+        !emoji && "overflow-hidden",
         playerTheme.border,
         playerTheme.bg,
         // Winner celebration animation
