@@ -218,7 +218,9 @@ export const SinglePlayerBoard: React.FC<SinglePlayerBoardProps> = ({
                     isWinningCell ? 'bg-slate-950/70' : 'bg-slate-950/80',
                     canClick ? 'hover:bg-slate-900/50 cursor-pointer' : 'cursor-default',
                     canClick ? 'ring-2 ring-indigo-300/45 shadow-[0_0_14px_rgba(99,102,241,0.18)] hover:ring-indigo-200/70 focus-visible:outline-none focus-visible:ring-2' : 'ring-1 ring-white/5',
-                    'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]'
+                    'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+                    // Winning cell border glow animation
+                    isWinningCell && (winnerIsX ? 'animate-winning-cell-glow-indigo' : 'animate-winning-cell-glow-emerald')
                   )}
                 >
                   {isWinningCell && (
