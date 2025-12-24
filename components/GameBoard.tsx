@@ -564,8 +564,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const badgeRef = useRef<HTMLDivElement>(null);
     const playerTheme = player === 'X'
       ? {
-          border: "border-indigo-500/40",
-          bg: "bg-indigo-500/15",
+          border: "border-indigo-400/55",
+          bg: "bg-indigo-500/22",
           glow: "shadow-indigo-500/60",
           ring: "ring-indigo-400",
           avatarGlow: "shadow-indigo-400/80",
@@ -573,8 +573,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           avatarBorder: "border-indigo-400/60"
         }
       : {
-          border: "border-emerald-500/40",
-          bg: "bg-emerald-500/15",
+          border: "border-emerald-400/55",
+          bg: "bg-emerald-500/22",
           glow: "shadow-emerald-500/60",
           ring: "ring-emerald-400",
           avatarGlow: "shadow-emerald-400/80",
@@ -633,11 +633,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               "border-opacity-80 bg-opacity-25",
               // Contained glow effect
               "animate-badge-glow-contained",
-              player === 'X'
-                ? "bg-gradient-to-br from-indigo-500/20 via-indigo-600/30 to-purple-600/20"
-                : "bg-gradient-to-br from-emerald-500/20 via-emerald-600/30 to-teal-600/20"
+                player === 'X'
+                  ? "bg-gradient-to-br from-indigo-500/20 via-indigo-600/30 to-purple-600/20"
+                  : "bg-gradient-to-br from-emerald-500/20 via-emerald-600/30 to-teal-600/20"
             )
-          : !isWinner && "opacity-70 hover:opacity-85",
+          : !isWinner && "opacity-85 hover:opacity-95",
         // Winner styling
         isWinner && clsx(
           "opacity-100 scale-110",
