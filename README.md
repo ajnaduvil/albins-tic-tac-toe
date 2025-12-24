@@ -17,19 +17,53 @@ No accounts, no backend: the host creates a room code, the other player joins, a
 ## Features
 
 - **P2P real-time multiplayer** via WebRTC (PeerJS)
+- **Single-player AI mode** with 4 difficulty levels (Easy, Medium, Hard, Extreme)
 - **Room codes** (3 digits) for quick sharing
-- **Custom board sizes**: 3×3 up to 6×6
-- **Custom win condition**: 3-in-a-row up to 6-in-a-row (bounded by grid size)
+- **Custom board sizes**: 3×3 up to 7×7
+- **Custom win condition**: 3-in-a-row up to 7-in-a-row (bounded by grid size)
 - **Rematch flow + score tracking**
-- **In-game chat** (with saved quick-message presets)
-- **Emoji reactions** and a **“nudge”** (shake) button
-- **Confetti** when you win
+- **In-game chat** (with customizable quick-message presets)
+- **Animated emoji reactions** using LiveEmoji library
+- **Sound effects** for moves and game outcomes
+- **Move highlighting** (last move stays highlighted for 10 seconds)
+- **"Nudge" feature** (shake animation to get opponent's attention)
+- **Confetti celebrations** (different effects for wins vs draws)
+- **Mobile optimizations** (numeric keypad, fixed CTAs, responsive design)
+- **Local storage** for game preferences and chat presets
 
 ## How it works (quick)
 
 - The host creates a room and gets a **3-digit code**.
 - Under the hood that code maps to a PeerJS peer id (see `hooks/usePeerGame.ts`).
 - Players connect via WebRTC; moves/chat/emotes are sent over the data channel.
+
+## Single Player AI Mode
+
+Challenge yourself against an AI opponent with 4 difficulty levels:
+
+- **Easy**: Random moves with basic strategy
+- **Medium**: Minimax algorithm with limited depth
+- **Hard**: Advanced minimax with alpha-beta pruning (unbeatable on 3×3)
+- **Extreme**: Deeper search for larger boards, takes longer to think
+
+The AI uses intelligent heuristics that consider winning combinations, blocking moves, and positional advantages.
+
+## Audio & Visual Enhancements
+
+- **Sound Effects**: Web Audio API-generated sounds for moves (X/O tones) and game outcomes (win/lose/draw melodies)
+- **Animated Emojis**: LiveEmoji library provides smooth animated reactions for 9 different emojis
+- **Move Highlighting**: Last played move is highlighted for 10 seconds to track game flow
+- **Nudge Animation**: Screen shake effect to get your opponent's attention
+- **Confetti Effects**: Different celebration styles - blue/purple for wins, yellow/gold for draws
+- **Visual Feedback**: Smooth animations, hover effects, and responsive transitions throughout the UI
+
+## User Experience Features
+
+- **Mobile Optimized**: Numeric keypad for room code entry, fixed bottom action buttons, responsive design
+- **Chat System**: Real-time messaging with customizable preset messages (default: "Nice move!", "GG", "Unlucky", "Rematch?", "Hurry up!")
+- **Local Storage**: Game preferences (grid size, win condition, AI difficulty) and chat presets are automatically saved
+- **Accessibility**: Proper ARIA labels, keyboard navigation, and screen reader support
+- **Progressive Enhancement**: Works without JavaScript for basic functionality, enhanced with JS enabled
 
 ## Getting started (local dev)
 
