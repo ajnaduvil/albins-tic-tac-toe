@@ -403,22 +403,34 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
     return (
       <div className={clsx(
-        "relative flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl border transition-all duration-500 flex-1 min-w-0",
+        "relative flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl border transition-all duration-500 flex-1 min-w-0 overflow-hidden",
         playerTheme.border,
         playerTheme.bg,
         // Enhanced glow and animation when it's the player's turn
         isCurrentPlayerTurn
           ? clsx(
-              "ring-4 ring-offset-2 ring-offset-slate-900 opacity-100 scale-105 shadow-2xl",
-              playerTheme.ring,
-              playerTheme.glow,
+              "opacity-100 scale-105",
               "border-opacity-80 bg-opacity-25",
-              // Custom glow animation
-              player === 'X' ? "animate-pulse-glow-indigo" : "animate-pulse-glow-emerald"
+              // Contained glow effect
+              "animate-badge-glow-contained",
+              player === 'X'
+                ? "bg-gradient-to-br from-indigo-500/20 via-indigo-600/30 to-purple-600/20"
+                : "bg-gradient-to-br from-emerald-500/20 via-emerald-600/30 to-teal-600/20"
             )
           : "opacity-70 hover:opacity-85"
       )}>
-      
+
+        {/* Internal highlight animation when it's the player's turn */}
+        {isCurrentPlayerTurn && (
+          <div className={clsx(
+            "absolute inset-0 rounded-xl opacity-40",
+            "animate-badge-highlight-sweep",
+            player === 'X'
+              ? "bg-gradient-to-r from-transparent via-indigo-400/60 to-transparent"
+              : "bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent"
+          )} />
+        )}
+
       {/* Emoji Overlay */}
       {emoji && (
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
@@ -462,27 +474,27 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       )}
 
       <div className={clsx(
-        "flex-shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-2 transition-all duration-500 relative",
+        "flex-shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-2 transition-all duration-500 relative overflow-hidden",
         isCurrentPlayerTurn
           ? clsx(
-              playerTheme.avatarBg,
-              playerTheme.avatarBorder,
-              playerTheme.avatarGlow,
-              "shadow-lg scale-110",
-              // Pulsing glow effect
-              player === 'X' ? "animate-avatar-glow-indigo" : "animate-avatar-glow-emerald"
+              "scale-110",
+              player === 'X'
+                ? "bg-gradient-to-br from-indigo-500/40 via-indigo-600/60 to-purple-600/40 border-indigo-400/80"
+                : "bg-gradient-to-br from-emerald-500/40 via-emerald-600/60 to-teal-600/40 border-emerald-400/80",
+              // Contained glow effect
+              "animate-avatar-glow-contained"
             )
           : "bg-slate-800 border-slate-600"
       )}>
         {player === 'X' ? (
           <X className={clsx(
-            "w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300",
-            isCurrentPlayerTurn ? "text-indigo-300 scale-110 drop-shadow-lg" : "text-indigo-400"
+            "w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 relative z-10",
+            isCurrentPlayerTurn ? "text-indigo-200 scale-110" : "text-indigo-400"
           )} strokeWidth={2.5} />
         ) : (
           <Circle className={clsx(
-            "w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300",
-            isCurrentPlayerTurn ? "text-emerald-300 scale-110 drop-shadow-lg" : "text-emerald-400"
+            "w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 relative z-10",
+            isCurrentPlayerTurn ? "text-emerald-200 scale-110" : "text-emerald-400"
           )} strokeWidth={2.5} />
         )}
       </div>
@@ -608,7 +620,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       {/* The Grid */}
       <div className="w-full max-w-[400px] aspect-square relative">
         <div
-            className="absolute inset-0 bg-slate-700 shadow-2xl"
+            className={clsx(
+              "absolute inset-0 bg-slate-700 shadow-2xl transition-all duration-500",
+              // Grid glow effect when it's the player's turn
+              isMyTurn && status === 'playing' && (
+                myPlayer === 'X' ? "animate-grid-glow-indigo ring-2 ring-indigo-400/30" : "animate-grid-glow-emerald ring-2 ring-emerald-400/30"
+              )
+            )}
             style={{
                 display: 'grid',
                 gridTemplateColumns: `repeat(${gridSize}, 1fr)`,

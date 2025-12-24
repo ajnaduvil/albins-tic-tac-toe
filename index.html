@@ -73,20 +73,14 @@
           opacity: 0.8;
         }
       }
-      @keyframes avatar-glow-indigo {
+      @keyframes avatar-glow-contained {
         0%, 100% {
-          box-shadow: 0 0 10px rgba(196, 181, 253, 0.4), 0 0 20px rgba(196, 181, 253, 0.2);
+          filter: brightness(1) saturate(1) contrast(1);
+          transform: scale(1);
         }
         50% {
-          box-shadow: 0 0 20px rgba(196, 181, 253, 0.8), 0 0 30px rgba(196, 181, 253, 0.4);
-        }
-      }
-      @keyframes avatar-glow-emerald {
-        0%, 100% {
-          box-shadow: 0 0 10px rgba(110, 231, 183, 0.4), 0 0 20px rgba(110, 231, 183, 0.2);
-        }
-        50% {
-          box-shadow: 0 0 20px rgba(110, 231, 183, 0.8), 0 0 30px rgba(110, 231, 183, 0.4);
+          filter: brightness(1.1) saturate(1.2) contrast(1.1);
+          transform: scale(1.02);
         }
       }
       .animate-pulse-glow-indigo {
@@ -101,11 +95,57 @@
       .animate-pulse-fast {
         animation: pulse-fast 1.5s ease-in-out infinite;
       }
-      .animate-avatar-glow-indigo {
-        animation: avatar-glow-indigo 2s ease-in-out infinite;
+      .animate-avatar-glow-contained {
+        animation: avatar-glow-contained 2s ease-in-out infinite;
       }
-      .animate-avatar-glow-emerald {
-        animation: avatar-glow-emerald 2s ease-in-out infinite;
+      @keyframes badge-glow-contained {
+        0%, 100% {
+          filter: brightness(1) saturate(1) contrast(1);
+          background-size: 100% 100%;
+        }
+        50% {
+          filter: brightness(1.1) saturate(1.2) contrast(1.1);
+          background-size: 110% 110%;
+        }
+      }
+      .animate-badge-glow-contained {
+        animation: badge-glow-contained 2s ease-in-out infinite;
+      }
+      @keyframes badge-highlight-sweep {
+        0% {
+          transform: translateX(-100%) skewX(-15deg);
+        }
+        50% {
+          transform: translateX(100%) skewX(-15deg);
+        }
+        100% {
+          transform: translateX(100%) skewX(-15deg);
+        }
+      }
+      .animate-badge-highlight-sweep {
+        animation: badge-highlight-sweep 3s ease-in-out infinite;
+      }
+      @keyframes grid-glow-indigo {
+        0%, 100% {
+          box-shadow: 0 0 30px rgba(59, 130, 246, 0.2), 0 0 60px rgba(59, 130, 246, 0.1), 0 0 90px rgba(59, 130, 246, 0.05);
+        }
+        50% {
+          box-shadow: 0 0 50px rgba(59, 130, 246, 0.4), 0 0 100px rgba(59, 130, 246, 0.2), 0 0 150px rgba(59, 130, 246, 0.1);
+        }
+      }
+      @keyframes grid-glow-emerald {
+        0%, 100% {
+          box-shadow: 0 0 30px rgba(16, 185, 129, 0.2), 0 0 60px rgba(16, 185, 129, 0.1), 0 0 90px rgba(16, 185, 129, 0.05);
+        }
+        50% {
+          box-shadow: 0 0 50px rgba(16, 185, 129, 0.4), 0 0 100px rgba(16, 185, 129, 0.2), 0 0 150px rgba(16, 185, 129, 0.1);
+        }
+      }
+      .animate-grid-glow-indigo {
+        animation: grid-glow-indigo 2.5s ease-in-out infinite;
+      }
+      .animate-grid-glow-emerald {
+        animation: grid-glow-emerald 2.5s ease-in-out infinite;
       }
     </style>
   <script type="importmap">
