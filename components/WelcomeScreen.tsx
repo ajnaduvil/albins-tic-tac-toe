@@ -607,6 +607,19 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
           </button>
         </div>
       )}
+
+      {/* Developer Credit Footer */}
+      <div className="mt-6 text-center">
+        <a
+          href="https://github.com/ajnaduvil"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:text-slate-300 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500/50 text-sm"
+        >
+          <Github className="w-4 h-4" />
+          <span>Developed by ajnaduvil</span>
+        </a>
+      </div>
     </div>
   );
 };
