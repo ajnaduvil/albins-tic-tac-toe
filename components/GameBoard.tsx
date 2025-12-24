@@ -919,7 +919,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               const canClick = !cell && isMyTurn && status === 'playing';
               const winningPlayer = winner ?? null;
               const winnerIsX = winningPlayer === 'X';
-              const iconSizeClass = gridSize === 3 ? "w-16 h-16" : gridSize === 4 ? "w-10 h-10" : "w-6 h-6";
+              const iconSizeClass =
+                gridSize === 3 ? "w-16 h-16" :
+                gridSize === 4 ? "w-10 h-10" :
+                gridSize === 5 ? "w-8 h-8" :
+                gridSize === 6 ? "w-7 h-7" :
+                "w-6 h-6";
 
               return (
                 <button

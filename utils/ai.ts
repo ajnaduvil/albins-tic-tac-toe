@@ -173,12 +173,12 @@ export const chooseAiMove = (params: {
   const timeBudgetMs = level === 'extreme' ? 220 : level === 'hard' ? 80 : 30;
   const deadline = nowMs() + timeBudgetMs;
 
-  // Depth tuning by board size (kept conservative to avoid UI stalls)
+  // Depth tuning by board size (kept conservative to avoid UI stalls on 6x6/7x7)
   const depth =
     perfectCase ? moves.length :
     gridSize === 4 ? (level === 'extreme' ? 6 : level === 'hard' ? 5 : 4) :
     gridSize === 5 ? (level === 'extreme' ? 4 : level === 'hard' ? 4 : 3) :
-    /* 6x6 */       (level === 'extreme' ? 3 : level === 'hard' ? 3 : 2);
+    /* 6x6+ */      (level === 'extreme' ? 3 : level === 'hard' ? 3 : 2);
 
   // Medium: pick among top few moves to feel human. Hard/Extreme: deterministic best move.
   const topK = (level === 'hard' || level === 'extreme') ? 1 : 3;

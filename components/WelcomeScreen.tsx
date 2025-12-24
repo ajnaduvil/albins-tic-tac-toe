@@ -12,6 +12,8 @@ interface WelcomeScreenProps {
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, onStartAi, isConnecting, error }) => {
+  const GRID_SIZES = [3, 4, 5, 6, 7] as const;
+  const WIN_CONDITIONS = [3, 4, 5, 6, 7] as const;
   const [activeTab, setActiveTab] = useState<'create' | 'join' | 'ai'>('create');
   const isJoinTab = activeTab === 'join';
   const isAiTab = activeTab === 'ai';
@@ -258,8 +260,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
           <form onSubmit={handleCreate} className="space-y-5 animate-fade-in">
             <div className="space-y-3">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Grid Size</label>
-              <div className="grid grid-cols-4 gap-2">
-                {[3, 4, 5, 6].map((size) => (
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                {GRID_SIZES.map((size) => (
                   <button
                     key={size}
                     type="button"
@@ -285,25 +287,22 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                   Target to win
                 </span>
               </label>
-              <div className="flex gap-2">
-                {[3, 4, 5, 6].map((num) => {
-                  if (num > gridSize) return null;
-                  return (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setWinCondition(num)}
-                      className={clsx(
-                        "flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl border-2 transition-all",
-                        winCondition === num
-                          ? "border-emerald-500 bg-emerald-500/20 text-emerald-300"
-                          : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
-                      )}
-                    >
-                      <span className="text-sm font-bold">{num}</span>
-                    </button>
-                  );
-                })}
+              <div className="flex justify-center gap-2">
+                {WIN_CONDITIONS.filter((num) => num <= gridSize).map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setWinCondition(num)}
+                    className={clsx(
+                      "w-12 sm:w-14 flex items-center justify-center py-2 rounded-xl border-2 transition-all",
+                      winCondition === num
+                        ? "border-emerald-500 bg-emerald-500/20 text-emerald-300"
+                        : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
+                    )}
+                  >
+                    <span className="text-sm font-bold">{num}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -492,8 +491,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
           <form onSubmit={handleStartAi} className="space-y-5 animate-fade-in">
             <div className="space-y-3">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Grid Size</label>
-              <div className="grid grid-cols-4 gap-2">
-                {[3, 4, 5, 6].map((size) => (
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                {GRID_SIZES.map((size) => (
                   <button
                     key={size}
                     type="button"
@@ -519,25 +518,22 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                   Target to win
                 </span>
               </label>
-              <div className="flex gap-2">
-                {[3, 4, 5, 6].map((num) => {
-                  if (num > gridSize) return null;
-                  return (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setWinCondition(num)}
-                      className={clsx(
-                        "flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl border-2 transition-all",
-                        winCondition === num
-                          ? "border-emerald-500 bg-emerald-500/20 text-emerald-300"
-                          : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
-                      )}
-                    >
-                      <span className="text-sm font-bold">{num}</span>
-                    </button>
-                  );
-                })}
+              <div className="flex justify-center gap-2">
+                {WIN_CONDITIONS.filter((num) => num <= gridSize).map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setWinCondition(num)}
+                    className={clsx(
+                      "w-12 sm:w-14 flex items-center justify-center py-2 rounded-xl border-2 transition-all",
+                      winCondition === num
+                        ? "border-emerald-500 bg-emerald-500/20 text-emerald-300"
+                        : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
+                    )}
+                  >
+                    <span className="text-sm font-bold">{num}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
