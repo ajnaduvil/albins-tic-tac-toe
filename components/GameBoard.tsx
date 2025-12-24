@@ -379,15 +379,45 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     return `${opponentName}'s Turn`;
   };
 
-  const PlayerBadge = ({ player, name, score, isMe, emoji, message }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null, message?: string | null }) => (
-    <div className={clsx(
-      "relative flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl border transition-all duration-300 flex-1 min-w-0",
-      player === 'X' ? "border-indigo-500/30 bg-indigo-500/10" : "border-emerald-500/30 bg-emerald-500/10",
-      // On very small screens, scaling can cause clipping; keep scale for sm+
-      currentPlayer === player && status === 'playing'
-        ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-slate-400 opacity-100 sm:scale-105 shadow-lg"
-        : "opacity-70"
-    )}>
+  const PlayerBadge = ({ player, name, score, isMe, emoji, message }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null, message?: string | null }) => {
+    const isCurrentPlayerTurn = currentPlayer === player && status === 'playing';
+    const playerTheme = player === 'X'
+      ? {
+          border: "border-indigo-500/40",
+          bg: "bg-indigo-500/15",
+          glow: "shadow-indigo-500/60",
+          ring: "ring-indigo-400",
+          avatarGlow: "shadow-indigo-400/80",
+          avatarBg: "bg-indigo-500/20",
+          avatarBorder: "border-indigo-400/60"
+        }
+      : {
+          border: "border-emerald-500/40",
+          bg: "bg-emerald-500/15",
+          glow: "shadow-emerald-500/60",
+          ring: "ring-emerald-400",
+          avatarGlow: "shadow-emerald-400/80",
+          avatarBg: "bg-emerald-500/20",
+          avatarBorder: "border-emerald-400/60"
+        };
+
+    return (
+      <div className={clsx(
+        "relative flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl border transition-all duration-500 flex-1 min-w-0",
+        playerTheme.border,
+        playerTheme.bg,
+        // Enhanced glow and animation when it's the player's turn
+        isCurrentPlayerTurn
+          ? clsx(
+              "ring-4 ring-offset-2 ring-offset-slate-900 opacity-100 scale-105 shadow-2xl",
+              playerTheme.ring,
+              playerTheme.glow,
+              "border-opacity-80 bg-opacity-25",
+              // Custom glow animation
+              player === 'X' ? "animate-pulse-glow-indigo" : "animate-pulse-glow-emerald"
+            )
+          : "opacity-70 hover:opacity-85"
+      )}>
       
       {/* Emoji Overlay */}
       {emoji && (
@@ -431,8 +461,30 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </div>
       )}
 
-      <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800">
-        {player === 'X' ? <X className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" /> : <Circle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />}
+      <div className={clsx(
+        "flex-shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-2 transition-all duration-500 relative",
+        isCurrentPlayerTurn
+          ? clsx(
+              playerTheme.avatarBg,
+              playerTheme.avatarBorder,
+              playerTheme.avatarGlow,
+              "shadow-lg scale-110",
+              // Pulsing glow effect
+              player === 'X' ? "animate-avatar-glow-indigo" : "animate-avatar-glow-emerald"
+            )
+          : "bg-slate-800 border-slate-600"
+      )}>
+        {player === 'X' ? (
+          <X className={clsx(
+            "w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300",
+            isCurrentPlayerTurn ? "text-indigo-300 scale-110 drop-shadow-lg" : "text-indigo-400"
+          )} strokeWidth={2.5} />
+        ) : (
+          <Circle className={clsx(
+            "w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300",
+            isCurrentPlayerTurn ? "text-emerald-300 scale-110 drop-shadow-lg" : "text-emerald-400"
+          )} strokeWidth={2.5} />
+        )}
       </div>
       <div className="flex flex-col min-w-0">
          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
@@ -443,7 +495,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       </div>
       <div className="ml-auto text-base sm:text-xl font-bold text-slate-200">{score}</div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className={clsx(

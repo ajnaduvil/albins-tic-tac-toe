@@ -39,6 +39,74 @@
       .animate-fade-in-up {
         animation: fade-in-up 0.3s ease-out;
       }
+      @keyframes pulse-glow {
+        0%, 100% {
+          box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.2), 0 0 60px rgba(59, 130, 246, 0.1);
+        }
+        50% {
+          box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 0 60px rgba(59, 130, 246, 0.3), 0 0 90px rgba(59, 130, 246, 0.2);
+        }
+      }
+      @keyframes pulse-glow-emerald {
+        0%, 100% {
+          box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), 0 0 40px rgba(16, 185, 129, 0.2), 0 0 60px rgba(16, 185, 129, 0.1);
+        }
+        50% {
+          box-shadow: 0 0 30px rgba(16, 185, 129, 0.5), 0 0 60px rgba(16, 185, 129, 0.3), 0 0 90px rgba(16, 185, 129, 0.2);
+        }
+      }
+      @keyframes pulse-slow {
+        0%, 100% {
+          opacity: 0.3;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.6;
+          transform: scale(1.02);
+        }
+      }
+      @keyframes pulse-fast {
+        0%, 100% {
+          opacity: 0.2;
+        }
+        50% {
+          opacity: 0.8;
+        }
+      }
+      @keyframes avatar-glow-indigo {
+        0%, 100% {
+          box-shadow: 0 0 10px rgba(196, 181, 253, 0.4), 0 0 20px rgba(196, 181, 253, 0.2);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(196, 181, 253, 0.8), 0 0 30px rgba(196, 181, 253, 0.4);
+        }
+      }
+      @keyframes avatar-glow-emerald {
+        0%, 100% {
+          box-shadow: 0 0 10px rgba(110, 231, 183, 0.4), 0 0 20px rgba(110, 231, 183, 0.2);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(110, 231, 183, 0.8), 0 0 30px rgba(110, 231, 183, 0.4);
+        }
+      }
+      .animate-pulse-glow-indigo {
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+      .animate-pulse-glow-emerald {
+        animation: pulse-glow-emerald 2s ease-in-out infinite;
+      }
+      .animate-pulse-slow {
+        animation: pulse-slow 3s ease-in-out infinite;
+      }
+      .animate-pulse-fast {
+        animation: pulse-fast 1.5s ease-in-out infinite;
+      }
+      .animate-avatar-glow-indigo {
+        animation: avatar-glow-indigo 2s ease-in-out infinite;
+      }
+      .animate-avatar-glow-emerald {
+        animation: avatar-glow-emerald 2s ease-in-out infinite;
+      }
     </style>
   <script type="importmap">
 {
