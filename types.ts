@@ -1,6 +1,7 @@
 export type Player = 'X' | 'O';
 export type CellValue = Player | null;
 export type GameStatus = 'idle' | 'playing' | 'winner' | 'draw';
+export type AiLevel = 'easy' | 'medium' | 'hard';
 
 export interface ChatMessage {
   id: string;

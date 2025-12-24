@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Peer, { DataConnection, PeerOptions } from 'peerjs';
 import { GameState, ConnectionStatus, Player, PeerMessage, ChatMessage } from '../types';
-import { checkWinner, isDraw, isForcedDraw, getInitialGameState } from '../utils/gameLogic';
+import { applyMoveToGameState, getInitialGameState } from '../utils/gameLogic';
 
 const ID_PREFIX = 'peer-tac-toe-v4-public-'; // Bumped version to v4 to avoid cached/stale IDs on server
 
@@ -87,28 +87,13 @@ export const usePeerGame = () => {
 
   const updateGameLocal = useCallback((index: number, player: Player) => {
     setGameState((prev) => {
-      if (prev.board[index] || prev.status !== 'playing') return prev;
+      const { nextState, winnerJustHappened } = applyMoveToGameState(prev, index, player);
 
-      const newBoard = [...prev.board];
-      newBoard[index] = player;
-
-      const { winner, line } = checkWinner(newBoard, prev.winCondition);
-      const draw = isDraw(newBoard);
-      const nextPlayer: Player = player === 'X' ? 'O' : 'X';
-      const forcedDraw = !winner && isForcedDraw(newBoard, prev.winCondition, nextPlayer);
-
-      if (winner) {
-        setScores(current => ({ ...current, [winner]: current[winner] + 1 }));
+      if (winnerJustHappened) {
+        setScores((current) => ({ ...current, [winnerJustHappened]: current[winnerJustHappened] + 1 }));
       }
 
-      return {
-        ...prev,
-        board: newBoard,
-        currentPlayer: nextPlayer,
-        status: winner ? 'winner' : (draw || forcedDraw) ? 'draw' : 'playing',
-        winner,
-        winningLine: line,
-      };
+      return nextState;
     });
   }, []);
 

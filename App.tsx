@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import { usePeerGame } from './hooks/usePeerGame';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { GameBoard } from './components/GameBoard';
+import { SinglePlayerBoard } from './components/SinglePlayerBoard';
 import { Loader2, Copy } from 'lucide-react';
 import clsx from 'clsx';
+import { useAIGame } from './hooks/useAIGame';
+import type { AiLevel } from './types';
 
 const App: React.FC = () => {
+  const [mode, setMode] = useState<'welcome' | 'multiplayer' | 'ai'>('welcome');
+
   const {
     gameState,
     connectionStatus,
@@ -29,6 +34,8 @@ const App: React.FC = () => {
     sendChat,
     chatMessages
   } = usePeerGame();
+
+  const ai = useAIGame();
   
   const [copied, setCopied] = useState(false);
   
@@ -96,19 +103,49 @@ const App: React.FC = () => {
   };
 
   const renderContent = () => {
-    // 1. Initial State or Error
-    if (connectionStatus === 'disconnected' || connectionStatus === 'error') {
+    // AI Mode
+    if (mode === 'ai') {
       return (
-        <WelcomeScreen 
-          onCreate={createRoom} 
-          onJoin={joinRoom} 
-          isConnecting={false} 
-          error={errorMessage} 
+        <SinglePlayerBoard
+          gameState={ai.gameState}
+          playerName={ai.config?.name ?? 'You'}
+          aiName="AI"
+          scores={ai.scores}
+          difficulty={ai.config?.difficulty ?? 'medium'}
+          aiThinking={ai.aiThinking}
+          onMove={ai.makeMove}
+          onReset={ai.resetGame}
+          onLeave={() => {
+            ai.leave();
+            setMode('welcome');
+          }}
         />
       );
     }
 
-    // 2. Connecting State (for joiners mostly, or hosts initializing)
+    // Welcome screen (explicit or fallback on errors/disconnect)
+    if (mode === 'welcome' || connectionStatus === 'disconnected' || connectionStatus === 'error') {
+      return (
+        <WelcomeScreen
+          onCreate={(name, gridSize, winCondition) => {
+            setMode('multiplayer');
+            createRoom(name, gridSize, winCondition);
+          }}
+          onJoin={(code, name) => {
+            setMode('multiplayer');
+            joinRoom(code, name);
+          }}
+          onStartAi={(name, gridSize, winCondition, difficulty: AiLevel) => {
+            ai.start({ name, gridSize, winCondition, difficulty });
+            setMode('ai');
+          }}
+          isConnecting={connectionStatus === 'connecting'}
+          error={errorMessage}
+        />
+      );
+    }
+
+    // Multiplayer connecting state
     if (connectionStatus === 'connecting') {
       return (
         <div className="flex flex-col items-center gap-6 p-8 pb-32 bg-slate-800/50 rounded-2xl backdrop-blur-sm border border-slate-700 animate-pulse">
@@ -121,7 +158,10 @@ const App: React.FC = () => {
            {/* Mobile fixed cancel button */}
            <div className="sm:hidden fixed left-0 right-0 bottom-0 z-50 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-slate-950/80 backdrop-blur border-t border-white/10">
              <button
-               onClick={leaveRoom}
+              onClick={() => {
+                leaveRoom();
+                setMode('welcome');
+              }}
                className="w-full py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-xl font-black transition-all shadow-xl shadow-red-500/20"
              >
                Cancel Connection
@@ -130,7 +170,10 @@ const App: React.FC = () => {
 
            {/* Desktop inline cancel button */}
            <button
-             onClick={leaveRoom}
+             onClick={() => {
+               leaveRoom();
+               setMode('welcome');
+             }}
              className="hidden sm:block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors border border-transparent hover:border-slate-600"
            >
              Cancel
@@ -142,16 +185,17 @@ const App: React.FC = () => {
   
   // Logic: Host waiting for opponent. 
   // 'disconnected' here implies the Peer is open (handled in hook) but no data connection yet.
-  const isWaitingForOpponent = isHost && roomCode && connectionStatus === 'disconnected';
+  const isWaitingForOpponent = mode === 'multiplayer' && isHost && roomCode && connectionStatus === 'disconnected';
+  const allowScroll = (mode === 'ai') || (mode === 'multiplayer' && connectionStatus === 'connected');
 
   return (
     <div className={clsx(
       "app-shell min-h-[100svh] w-full flex items-start sm:items-center justify-center px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]",
       // Only allow scrolling when connected (game active), not during welcome/join
-      connectionStatus === 'connected' ? "overflow-y-auto" : "overflow-hidden"
+      allowScroll ? "overflow-y-auto" : "overflow-hidden"
     )}>
       <div className="relative z-10 w-full flex justify-center">
-        {connectionStatus === 'connected' ? (
+        {mode === 'multiplayer' && connectionStatus === 'connected' ? (
           <GameBoard
             gameState={gameState}
             myPlayer={myPlayer}
@@ -162,7 +206,10 @@ const App: React.FC = () => {
             scores={scores}
             onMove={makeMove}
             onReset={resetGame}
-            onLeave={leaveRoom}
+            onLeave={() => {
+              leaveRoom();
+              setMode('welcome');
+            }}
             incomingEmoji={incomingEmoji}
             myEmoji={myEmoji}
             onSendEmoji={sendEmoji}
@@ -201,7 +248,13 @@ const App: React.FC = () => {
             
             <p className="text-sm text-slate-500 animate-pulse">Waiting for player to join...</p>
             
-            <button onClick={leaveRoom} className="text-slate-400 hover:text-white text-sm underline underline-offset-4">
+            <button
+              onClick={() => {
+                leaveRoom();
+                setMode('welcome');
+              }}
+              className="text-slate-400 hover:text-white text-sm underline underline-offset-4"
+            >
               Cancel
             </button>
           </div>

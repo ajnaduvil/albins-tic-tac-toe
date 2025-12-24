@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Gamepad2, Users, User, Grid3x3, Grid, LayoutGrid, Trophy, Check, Delete, Github, Clipboard } from 'lucide-react';
+import { Gamepad2, Users, User, Cpu, Check, Delete, Github, Clipboard } from 'lucide-react';
 import clsx from 'clsx';
+import type { AiLevel } from '../types';
 
 interface WelcomeScreenProps {
   onCreate: (name: string, gridSize: number, winCondition: number) => void;
   onJoin: (code: string, name: string) => void;
+  onStartAi: (name: string, gridSize: number, winCondition: number, difficulty: AiLevel) => void;
   isConnecting: boolean;
   error: string | null;
 }
 
-export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, isConnecting, error }) => {
-  const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
+export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, onStartAi, isConnecting, error }) => {
+  const [activeTab, setActiveTab] = useState<'create' | 'join' | 'ai'>('create');
   const isJoinTab = activeTab === 'join';
+  const isAiTab = activeTab === 'ai';
   const isDev = (import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV === true;
   
   // Persisted State Initialization
@@ -25,6 +28,15 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
 
   const [winCondition, setWinCondition] = useState<number>(() => {
     try { return Number(localStorage.getItem('peer_tactoe_pref_win')) || 3; } catch { return 3; }
+  });
+
+  const [aiDifficulty, setAiDifficulty] = useState<AiLevel>(() => {
+    try {
+      const raw = localStorage.getItem('peer_tactoe_pref_ai_level');
+      return raw === 'easy' || raw === 'medium' || raw === 'hard' ? raw : 'medium';
+    } catch {
+      return 'medium';
+    }
   });
   
   const [roomCode, setRoomCode] = useState('');
@@ -43,6 +55,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
       localStorage.setItem('peer_tactoe_name', name.trim());
       localStorage.setItem('peer_tactoe_pref_grid', gridSize.toString());
       localStorage.setItem('peer_tactoe_pref_win', winCondition.toString());
+      localStorage.setItem('peer_tactoe_pref_ai_level', aiDifficulty);
     } catch (e) {
       console.error('Failed to save preferences', e);
     }
@@ -59,6 +72,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     doJoin();
+  };
+
+  const handleStartAi = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim()) {
+      savePreferences();
+      onStartAi(name.trim(), gridSize, winCondition, aiDifficulty);
+    }
   };
 
   const doJoin = () => {
@@ -131,6 +152,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
   };
 
   const canJoin = !!name.trim() && roomCode.length === 3 && !isConnecting;
+  const canStartAi = !!name.trim() && !isConnecting;
 
   return (
     <div className={clsx(
@@ -138,7 +160,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
       // remains truly viewport-sticky (transformed ancestors break position: fixed).
       "w-full max-w-md flex flex-col gap-4 sm:gap-6",
       // Make room for the fixed mobile Join CTA bar (join tab only)
-      isJoinTab && "pb-24 sm:pb-0"
+      isJoinTab && "pb-24 sm:pb-0",
+      isAiTab && "pb-0"
     )}>
       
       {/* Header */}
@@ -207,6 +230,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
                 )}
               >
                 <Users className="w-4 h-4" /> Join Room
+              </button>
+              <button
+                onClick={() => setActiveTab('ai')}
+                className={clsx(
+                  "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2",
+                  activeTab === 'ai'
+                    ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/20"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                )}
+              >
+                <Cpu className="w-4 h-4" /> Vs AI
               </button>
             </div>
 
@@ -440,6 +474,94 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
               className="hidden sm:block w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20"
             >
               {isConnecting ? 'Connecting...' : 'Join Game'}
+            </button>
+          </form>
+        )}
+
+        {/* AI Tab Content */}
+        {activeTab === 'ai' && (
+          <form onSubmit={handleStartAi} className="space-y-5 animate-fade-in">
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Grid Size</label>
+              <div className="grid grid-cols-4 gap-2">
+                {[3, 4, 5, 6].map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setGridSize(size)}
+                    className={clsx(
+                      "flex flex-col items-center justify-center gap-1 py-3 rounded-xl border-2 transition-all relative overflow-hidden",
+                      gridSize === size
+                        ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
+                        : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
+                    )}
+                  >
+                    {gridSize === size && <div className="absolute top-1 right-1"><Check className="w-3 h-3" /></div>}
+                    <span className="text-lg font-bold leading-none">{size}x{size}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 flex items-center justify-between">
+                <span>Win Condition</span>
+                <span className="text-[10px] text-slate-500 normal-case bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">
+                  Target to win
+                </span>
+              </label>
+              <div className="flex gap-2">
+                {[3, 4, 5, 6].map((num) => {
+                  if (num > gridSize) return null;
+                  return (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setWinCondition(num)}
+                      className={clsx(
+                        "flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl border-2 transition-all",
+                        winCondition === num
+                          ? "border-emerald-500 bg-emerald-500/20 text-emerald-300"
+                          : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
+                      )}
+                    >
+                      <span className="text-sm font-bold">{num}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Difficulty</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['easy', 'medium', 'hard'] as const).map((lvl) => (
+                  <button
+                    key={lvl}
+                    type="button"
+                    onClick={() => setAiDifficulty(lvl)}
+                    className={clsx(
+                      "py-3 rounded-xl border-2 font-bold text-sm transition-all",
+                      aiDifficulty === lvl
+                        ? "border-amber-500 bg-amber-500/20 text-amber-200"
+                        : "border-slate-700 bg-slate-900/30 text-slate-500 hover:border-slate-600 hover:bg-slate-800"
+                    )}
+                  >
+                    {lvl.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-500 ml-1">
+                Hard is unbeatable on 3x3. Larger boards use a time-limited search for performance.
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={!canStartAi}
+              className="w-full py-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 mt-4"
+            >
+              Start Vs AI
             </button>
           </form>
         )}

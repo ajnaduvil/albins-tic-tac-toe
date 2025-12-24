@@ -130,3 +130,32 @@ export const getInitialGameState = (startingPlayer: Player = 'X', gridSize: numb
   gridSize,
   winCondition
 });
+
+export const applyMoveToGameState = (
+  prev: GameState,
+  index: number,
+  player: Player
+): { nextState: GameState; winnerJustHappened: Player | null } => {
+  if (prev.status !== 'playing') return { nextState: prev, winnerJustHappened: null };
+  if (index < 0 || index >= prev.board.length) return { nextState: prev, winnerJustHappened: null };
+  if (prev.board[index]) return { nextState: prev, winnerJustHappened: null };
+
+  const newBoard = [...prev.board];
+  newBoard[index] = player;
+
+  const { winner, line } = checkWinner(newBoard, prev.winCondition);
+  const draw = isDraw(newBoard);
+  const nextPlayer: Player = player === 'X' ? 'O' : 'X';
+  const forcedDraw = !winner && isForcedDraw(newBoard, prev.winCondition, nextPlayer);
+
+  const nextState: GameState = {
+    ...prev,
+    board: newBoard,
+    currentPlayer: nextPlayer,
+    status: winner ? 'winner' : (draw || forcedDraw) ? 'draw' : 'playing',
+    winner,
+    winningLine: line,
+  };
+
+  return { nextState, winnerJustHappened: winner };
+};
