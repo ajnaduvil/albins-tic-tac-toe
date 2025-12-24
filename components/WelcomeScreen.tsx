@@ -134,7 +134,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
 
   return (
     <div className={clsx(
-      "w-full max-w-md flex flex-col gap-4 sm:gap-6 animate-scale-in",
+      // Important: keep this wrapper free of CSS transforms so the mobile fixed Join CTA
+      // remains truly viewport-sticky (transformed ancestors break position: fixed).
+      "w-full max-w-md flex flex-col gap-4 sm:gap-6",
       // Make room for the fixed mobile Join CTA bar (join tab only)
       isJoinTab && "pb-24 sm:pb-0"
     )}>
@@ -162,7 +164,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreate, onJoin, 
         </a>
       </div>
 
-      <div className="relative rounded-3xl p-[1px] bg-gradient-to-br from-white/15 via-white/5 to-white/10 shadow-2xl">
+      <div className="relative rounded-3xl p-[1px] bg-gradient-to-br from-white/15 via-white/5 to-white/10 shadow-2xl animate-scale-in">
         <div className="relative bg-slate-950/45 backdrop-blur-xl p-4 sm:p-6 rounded-3xl border border-white/10 overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent" />
           <div className="relative">

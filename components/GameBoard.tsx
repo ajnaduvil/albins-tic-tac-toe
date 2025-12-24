@@ -124,14 +124,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         spread: 70,
         origin: { y: 0.6 }
       });
-    } else if (status === 'draw') {
-      // Attention-grabbing effect for draws
-      confetti({
-        particleCount: 80,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ['#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0', '#f1f5f9']
-      });
     }
   }, [status, winner, myPlayer]);
 
