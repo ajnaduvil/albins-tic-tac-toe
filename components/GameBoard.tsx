@@ -594,10 +594,24 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           )} />
         )}
 
-      {/* Emoji Overlay */}
+      {/* Emoji Overlay - More Pronounced */}
       {emoji && (
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
-          {renderAnimatedEmoji(emoji, 64)}
+        <div className="absolute -top-12 sm:-top-14 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
+          <div className="relative animate-emoji-pop">
+            {/* Glow effect behind emoji */}
+            <div className={clsx(
+              "absolute inset-0 rounded-full blur-xl opacity-60",
+              "animate-emoji-glow",
+              isMe
+                ? "bg-gradient-to-br from-indigo-400/60 via-purple-400/50 to-fuchsia-400/60"
+                : "bg-gradient-to-br from-emerald-400/60 via-teal-400/50 to-cyan-400/60"
+            )} style={{ transform: 'scale(1.5)' }} />
+            
+            {/* Emoji with enhanced styling */}
+            <div className="relative drop-shadow-2xl filter">
+              {renderAnimatedEmoji(emoji, 80)}
+            </div>
+          </div>
         </div>
       )}
 
