@@ -134,6 +134,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       for (let i = 0; i < board.length; i++) {
         if (prevBoardRef.current[i] === null && board[i] !== null) {
           setLastMoveIndex(i);
+          // Play move sound
+          if (board[i] && status === 'playing') {
+            void playMoveSound(board[i]);
+          }
           // Clear highlight after 10 seconds
           setTimeout(() => setLastMoveIndex(null), 10000);
           break;
@@ -141,7 +145,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       }
     }
     prevBoardRef.current = [...board];
-  }, [board]);
+  }, [board, status]);
 
   // Clear last move highlight on game reset
   useEffect(() => {
@@ -286,17 +290,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   };
 
-  const playNudgeFeedback = async (kind: 'send' | 'receive') => {
-    // Vibration (best-effort; may be ignored on some browsers/devices)
-    try {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(kind === 'receive' ? [35, 40, 35] : 25);
-      }
-    } catch {
-      // ignore
-    }
-
-    // Sound (best-effort; may be blocked until user interaction)
+  const playMoveSound = async (player: Player) => {
+    // Move sound (best-effort; may be blocked until user interaction)
     try {
       const AnyWindow = window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
       const Ctx = window.AudioContext || AnyWindow.webkitAudioContext;
@@ -306,25 +301,137 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       const ctx = audioCtxRef.current;
       if (ctx.state === 'suspended') await ctx.resume();
 
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+      const duration = 0.15;
+
+      if (player === 'X') {
+        // X sound - higher pitch, crisp tone
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+        osc.frequency.exponentialRampToValueAtTime(600, now + duration);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.12, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      } else {
+        // O sound - lower pitch, rounder tone
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(500, now + 0.05);
+        osc.frequency.exponentialRampToValueAtTime(400, now + duration);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.12, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const playNudgeFeedback = async (kind: 'send' | 'receive') => {
+    // Vibration (best-effort; may be ignored on some browsers/devices)
+    try {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(kind === 'receive' ? [50, 30, 50, 30, 50] : [30, 20, 30]);
+      }
+    } catch {
+      // ignore
+    }
+
+    // Ring/Buzz Sound (best-effort; may be blocked until user interaction)
+    try {
+      const AnyWindow = window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
+      const Ctx = window.AudioContext || AnyWindow.webkitAudioContext;
+      if (!Ctx) return;
+
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') await ctx.resume();
 
       const now = ctx.currentTime;
-      const base = kind === 'receive' ? 740 : 880; // receive a bit lower
+      const duration = kind === 'receive' ? 0.3 : 0.2;
+      
+      if (kind === 'receive') {
+        // Ring sound - multiple frequencies for a bell-like effect
+        const frequencies = [800, 1000, 1200]; // Harmonic frequencies
+        const oscillators: OscillatorNode[] = [];
+        const gains: GainNode[] = [];
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(base, now);
-      osc.frequency.exponentialRampToValueAtTime(base * 1.15, now + 0.08);
+        frequencies.forEach((freq, index) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          
+          // Create a ring pattern with different timing for each frequency
+          const delay = index * 0.02;
+          gain.gain.setValueAtTime(0, now + delay);
+          gain.gain.linearRampToValueAtTime(0.12 / frequencies.length, now + delay + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.06 / frequencies.length, now + delay + 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + duration);
+          
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          oscillators.push(osc);
+          gains.push(gain);
+          
+          osc.start(now + delay);
+          osc.stop(now + delay + duration);
+        });
+      } else {
+        // Buzz sound - lower frequency with slight modulation
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const lfo = ctx.createOscillator(); // Low frequency oscillator for buzz effect
+        const lfoGain = ctx.createGain();
 
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+        // Main oscillator
+        osc.type = 'square'; // Square wave for buzzy sound
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(450, now + 0.1);
 
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+        // LFO for buzz modulation
+        lfo.type = 'sine';
+        lfo.frequency.setValueAtTime(8, now); // 8Hz modulation
+        lfoGain.gain.setValueAtTime(20, now); // Modulation depth
+        
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+        
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.15, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-      osc.start(now);
-      osc.stop(now + 0.16);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        lfo.start(now);
+        lfo.stop(now + duration);
+        osc.start(now);
+        osc.stop(now + duration);
+      }
     } catch {
       // ignore
     }
