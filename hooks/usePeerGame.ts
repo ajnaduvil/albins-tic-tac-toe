@@ -609,7 +609,7 @@ export const usePeerGame = () => {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 48000
+          sampleRate: 16000  // Lower sample rate for voice chat (saves CPU)
         }
       });
 
@@ -749,13 +749,15 @@ export const usePeerGame = () => {
       if (!mediaStreamRef.current) return;
     }
 
-    // Enable audio track
+    // Enable audio track (resume processing if it was paused by mute)
     const audioTracks = mediaStreamRef.current.getAudioTracks();
     console.log('Enabling audio tracks:', audioTracks.length);
     audioTracks.forEach(track => {
-      console.log('Audio track state before:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
-      track.enabled = true;
-      console.log('Audio track state after:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
+      if (track.readyState !== 'ended') {
+        console.log('Audio track state before:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
+        track.enabled = true;  // Resume CPU processing
+        console.log('Audio track state after:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
+      }
     });
 
     // Verify call is open
@@ -777,10 +779,11 @@ export const usePeerGame = () => {
     if (!isVoiceChatEnabled || !myPlayer) return;
     if (!mediaStreamRef.current) return;
 
-    // Disable audio track (mute stream without disconnecting)
+    // Disable audio track to pause CPU processing when button is released
     const audioTracks = mediaStreamRef.current.getAudioTracks();
     audioTracks.forEach(track => {
-      track.enabled = false;
+      track.enabled = false;  // Pause processing to save CPU
+      console.log('Audio track disabled - CPU processing paused (button released)');
     });
 
     setIsTalking(false);
@@ -795,6 +798,22 @@ export const usePeerGame = () => {
     // If muting while talking, stop talking
     if (newMuted && isTalking) {
       stopTalking();
+    }
+
+    // Pause audio processing when muted to save CPU
+    if (mediaStreamRef.current) {
+      const audioTracks = mediaStreamRef.current.getAudioTracks();
+      audioTracks.forEach(track => {
+        if (newMuted) {
+          // Disable track to pause processing (saves CPU)
+          track.enabled = false;
+          console.log('Audio track disabled due to mute - CPU processing paused');
+        } else {
+          // Re-enable when unmuted (if not talking, will be enabled when button is pressed)
+          // Don't enable here, let startTalking handle it
+          console.log('Audio track ready to be enabled on next talk');
+        }
+      });
     }
 
     if (myPlayer) {
