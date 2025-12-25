@@ -37,7 +37,8 @@ export type PeerMessage =
   | { type: 'PONG' }
   | { type: 'VOICE_TALKING_START'; player: Player }
   | { type: 'VOICE_TALKING_STOP'; player: Player }
-  | { type: 'VOICE_MUTE_TOGGLE'; player: Player; muted: boolean };
+  | { type: 'VOICE_MUTE_TOGGLE'; player: Player; muted: boolean }
+  | { type: 'VOICE_INITIALIZED'; player: Player };
 
 export interface GameContextType {
   gameState: GameState;

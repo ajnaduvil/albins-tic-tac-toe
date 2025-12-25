@@ -169,6 +169,13 @@ export const usePeerGame = () => {
     } else if (msg.type === 'VOICE_MUTE_TOGGLE') {
       // This is informational, opponent's mute state doesn't affect our UI directly
       // but we could use it for future features
+    } else if (msg.type === 'VOICE_INITIALIZED') {
+      // Opponent has initialized voice chat, if we haven't, we should too
+      // This helps establish the connection faster
+      if (!isVoiceChatEnabled && connectionStatus === 'connected') {
+        console.log('Opponent initialized voice chat, we should too');
+        // Don't auto-initialize (requires permission), but log it
+      }
     }
   }, [appendChatMessage, createId, myPlayer, opponentName, updateGameLocal]);
 
@@ -303,19 +310,34 @@ export const usePeerGame = () => {
 
       // Set up MediaConnection listener for voice chat
       peer.on('call', (call) => {
-        console.log('Incoming call received');
+        console.log('Host: Incoming call received');
         callRef.current = call;
         
         // If we have a stream, answer immediately
         if (mediaStreamRef.current) {
-          console.log('Answering call with existing stream');
-          call.answer(mediaStreamRef.current);
+          console.log('Host: Answering call with existing stream');
+          try {
+            call.answer(mediaStreamRef.current);
+          } catch (err) {
+            console.error('Host: Error answering call:', err);
+          }
         } else {
-          console.log('Call received but no stream yet, will answer when stream is ready');
+          console.log('Host: Call received but no stream yet, will answer when stream is ready');
+          // Set up stream handler for when we get the stream
+          call.on('stream', (remoteStream) => {
+            console.log('Host: Remote stream received (before local stream)');
+            if (remoteAudioRef.current) {
+              remoteAudioRef.current.srcObject = remoteStream;
+              remoteAudioRef.current.play().catch(err => {
+                console.error('Error playing remote audio:', err);
+              });
+            }
+          });
         }
         
+        // Set up stream handler (will be called when remote stream arrives)
         call.on('stream', (remoteStream) => {
-          console.log('Remote stream received');
+          console.log('Host: Remote stream received');
           if (remoteAudioRef.current) {
             remoteAudioRef.current.srcObject = remoteStream;
             // Ensure audio plays
@@ -325,13 +347,17 @@ export const usePeerGame = () => {
           }
         });
 
+        call.on('open', () => {
+          console.log('Host: Call opened');
+        });
+
         call.on('close', () => {
-          console.log('Call closed');
-          callRef.current = null;
+          console.log('Host: Call closed');
+          // Don't set to null immediately, might be reconnecting
         });
 
         call.on('error', (err) => {
-          console.error('MediaConnection error:', err);
+          console.error('Host: MediaConnection error:', err);
         });
       });
 
@@ -601,6 +627,11 @@ export const usePeerGame = () => {
       });
       
       setIsVoiceChatEnabled(true);
+      
+      // Notify opponent that we've initialized voice chat
+      if (myPlayer) {
+        sendMessage({ type: 'VOICE_INITIALIZED', player: myPlayer });
+      }
 
       // Create hidden audio element for remote audio
       if (!remoteAudioRef.current) {
@@ -625,6 +656,12 @@ export const usePeerGame = () => {
           try {
             callRef.current.answer(stream);
             console.log('Host: Call answered successfully');
+            // Wait a bit and verify the call is open
+            setTimeout(() => {
+              if (callRef.current) {
+                console.log('Host: Call state after answer:', { open: callRef.current.open });
+              }
+            }, 500);
           } catch (err) {
             console.error('Host: Error answering call:', err);
           }
@@ -635,6 +672,14 @@ export const usePeerGame = () => {
         // Joiner initiates call
         const hostPeerId = `${ID_PREFIX}${roomCode}`;
         console.log('Joiner: Initiating call to', hostPeerId);
+        
+        // If there's already a call, close it first
+        if (callRef.current) {
+          try {
+            callRef.current.close();
+          } catch {}
+        }
+        
         const call = peerRef.current.call(hostPeerId, stream);
         
         if (call) {
@@ -652,16 +697,36 @@ export const usePeerGame = () => {
           });
 
           call.on('open', () => {
-            console.log('Joiner: Call opened');
+            console.log('Joiner: Call opened successfully');
           });
 
           call.on('close', () => {
             console.log('Joiner: Call closed');
-            callRef.current = null;
+            // Don't set to null immediately, might be reconnecting
           });
 
           call.on('error', (err) => {
             console.error('Joiner: MediaConnection error:', err);
+            // Retry call if it fails and we still have a stream
+            if (mediaStreamRef.current && connectionStatus === 'connected') {
+              console.log('Joiner: Retrying call in 1 second...');
+              setTimeout(() => {
+                if (mediaStreamRef.current && peerRef.current && connectionStatus === 'connected') {
+                  const retryCall = peerRef.current.call(hostPeerId, mediaStreamRef.current);
+                  if (retryCall) {
+                    callRef.current = retryCall;
+                    retryCall.on('stream', (remoteStream) => {
+                      if (remoteAudioRef.current) {
+                        remoteAudioRef.current.srcObject = remoteStream;
+                        remoteAudioRef.current.play().catch(() => {});
+                      }
+                    });
+                    retryCall.on('open', () => console.log('Joiner: Retry call opened'));
+                    retryCall.on('error', (err) => console.error('Joiner: Retry call error:', err));
+                  }
+                }
+              }, 1000);
+            }
           });
         } else {
           console.error('Joiner: Failed to create call');

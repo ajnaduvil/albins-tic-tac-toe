@@ -1157,7 +1157,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {/* Emoji Bar */}
-      <div className="w-full flex justify-center gap-1 pt-0.5 mb-16 sm:mb-0">
+      <div className="w-full flex justify-center gap-1 pt-0.5 mb-2 sm:mb-0">
         <div className="flex justify-center bg-slate-950/45 backdrop-blur rounded-2xl sm:rounded-full p-1 sm:p-1.5 gap-0.5 sm:gap-0.5 border border-white/10 shadow-xl ring-1 ring-white/5">
             {EMOJIS.map(emoji => (
                 <button
@@ -1199,31 +1199,22 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           }}
           disabled={isMicMuted}
           className={clsx(
-            "px-8 py-4 sm:px-12 sm:py-5 rounded-2xl font-bold text-base sm:text-lg transition-all duration-200",
-            "border-2 shadow-xl ring-1",
+            "w-16 h-16 sm:w-20 sm:h-20 rounded-full font-bold text-sm sm:text-base transition-all duration-200",
+            "border-2 shadow-xl ring-1 flex items-center justify-center",
             isMicMuted
               ? "bg-slate-800/50 text-slate-500 border-slate-700 cursor-not-allowed"
               : isTalking
-              ? "bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 text-white border-emerald-400 shadow-emerald-500/30 animate-pulse scale-105"
-              : "bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 text-slate-300 border-slate-500 hover:from-slate-600 hover:via-slate-500 hover:to-slate-600 hover:scale-105 active:scale-95"
+              ? "bg-gradient-to-br from-emerald-500 via-green-500 to-emerald-600 text-white border-emerald-400 shadow-emerald-500/30 animate-pulse scale-110"
+              : "bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 text-slate-300 border-slate-500 hover:from-slate-600 hover:via-slate-500 hover:to-slate-600 hover:scale-105 active:scale-95"
           )}
           title={isMicMuted ? "Mic Muted" : isTalking ? "Talking..." : "Hold to Talk"}
         >
           {isMicMuted ? (
-            <span className="flex items-center gap-2">
-              <MicOff className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span>Mic Muted</span>
-            </span>
+            <MicOff className="w-6 h-6 sm:w-8 sm:h-8" />
           ) : isTalking ? (
-            <span className="flex items-center gap-2">
-              <Mic className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span>Talking...</span>
-            </span>
+            <Mic className="w-6 h-6 sm:w-8 sm:h-8" />
           ) : (
-            <span className="flex items-center gap-2">
-              <Mic className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span>Hold to Talk</span>
-            </span>
+            <Mic className="w-6 h-6 sm:w-8 sm:h-8" />
           )}
         </button>
       </div>
