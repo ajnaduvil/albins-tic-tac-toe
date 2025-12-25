@@ -597,6 +597,16 @@ export const usePeerGame = () => {
     cleanup();
   }, [cleanup]);
 
+  // Audio constraints - cached for reuse (avoids recreating object each time)
+  const AUDIO_CONSTRAINTS = {
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+      sampleRate: 16000  // Lower sample rate for voice chat (saves CPU)
+    }
+  };
+
   // Initialize voice chat - request mic permission and create MediaStream
   const initializeVoiceChat = useCallback(async () => {
     if (isVoiceChatEnabled || !connectionStatus || connectionStatus !== 'connected') {
@@ -604,14 +614,7 @@ export const usePeerGame = () => {
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 16000  // Lower sample rate for voice chat (saves CPU)
-        }
-      });
+      const stream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
 
       mediaStreamRef.current = stream;
       console.log('MediaStream created:', { 
@@ -749,10 +752,47 @@ export const usePeerGame = () => {
       if (!mediaStreamRef.current) return;
     }
 
-    // Enable audio track (resume processing when button is pressed)
+    // Check if tracks were stopped (e.g., due to mute) and need recreation
     const audioTracks = mediaStreamRef.current.getAudioTracks();
-    console.log('Enabling audio tracks:', audioTracks.length);
-    audioTracks.forEach(track => {
+    const tracksEnded = audioTracks.every(track => track.readyState === 'ended');
+    
+    if (tracksEnded) {
+      // Tracks were stopped, need to recreate stream
+      console.log('Audio tracks were stopped, recreating stream...');
+      try {
+        const newStream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
+        
+        mediaStreamRef.current = newStream;
+        
+        // Update MediaConnection with new stream if call exists
+        if (callRef.current) {
+          if (isHost && !callRef.current.open) {
+            callRef.current.answer(newStream);
+          } else if (!isHost && peerRef.current) {
+            const hostPeerId = `${ID_PREFIX}${roomCode}`;
+            if (callRef.current) callRef.current.close();
+            const newCall = peerRef.current.call(hostPeerId, newStream);
+            if (newCall) {
+              callRef.current = newCall;
+              newCall.on('stream', (remoteStream) => {
+                if (remoteAudioRef.current) {
+                  remoteAudioRef.current.srcObject = remoteStream;
+                  remoteAudioRef.current.play().catch(() => {});
+                }
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to recreate audio stream:', err);
+        return;
+      }
+    }
+
+    // Enable audio track (resume processing when button is pressed)
+    const currentTracks = mediaStreamRef.current.getAudioTracks();
+    console.log('Enabling audio tracks:', currentTracks.length);
+    currentTracks.forEach(track => {
       if (track.readyState !== 'ended') {
         console.log('Audio track state before:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
         track.enabled = true;  // Resume CPU processing (echo cancellation, noise suppression, etc.)
@@ -780,11 +820,12 @@ export const usePeerGame = () => {
     if (!isVoiceChatEnabled || !myPlayer) return;
     if (!mediaStreamRef.current) return;
 
-    // Disable audio track to pause CPU processing when button is released
+    // Stop audio tracks to release mic indicator and save resources
+    // Since users rarely talk, it's better to fully stop rather than keep active
     const audioTracks = mediaStreamRef.current.getAudioTracks();
     audioTracks.forEach(track => {
-      track.enabled = false;  // Pause processing to save CPU
-      console.log('Audio track disabled - CPU processing paused (button released)');
+      track.stop();  // Stop track to release mic and save CPU/memory
+      console.log('Audio track stopped - mic released, resources freed (button released)');
     });
 
     setIsTalking(false);
@@ -792,7 +833,7 @@ export const usePeerGame = () => {
   }, [isVoiceChatEnabled, myPlayer, sendMessage]);
 
   // Toggle mic mute
-  const toggleMicMute = useCallback(() => {
+  const toggleMicMute = useCallback(async () => {
     const newMuted = !isMicMuted;
     setIsMicMuted(newMuted);
 
@@ -801,26 +842,59 @@ export const usePeerGame = () => {
       stopTalking();
     }
 
-    // Pause audio processing when muted to save CPU
+    // Stop track when muted to release mic indicator and save CPU
     if (mediaStreamRef.current) {
       const audioTracks = mediaStreamRef.current.getAudioTracks();
-      audioTracks.forEach(track => {
-        if (newMuted) {
-          // Disable track to pause processing (saves CPU)
-          track.enabled = false;
-          console.log('Audio track disabled due to mute - CPU processing paused');
-        } else {
-          // Re-enable when unmuted (if not talking, will be enabled when button is pressed)
-          // Don't enable here, let startTalking handle it
-          console.log('Audio track ready to be enabled on next talk');
+      if (newMuted) {
+        // Stop tracks to release mic indicator and pause processing
+        audioTracks.forEach(track => {
+          track.stop();
+          console.log('Audio track stopped due to mute - mic indicator released, CPU processing paused');
+        });
+      } else {
+        // Unmuted - recreate stream if tracks were stopped
+        if (audioTracks.every(track => track.readyState === 'ended')) {
+          console.log('Recreating audio stream after unmute...');
+          try {
+            const newStream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
+            
+            mediaStreamRef.current = newStream;
+            
+            // Update MediaConnection with new stream if call exists
+            if (callRef.current) {
+              if (isHost && !callRef.current.open) {
+                // Host answering a pending call
+                callRef.current.answer(newStream);
+              } else if (!isHost && peerRef.current) {
+                // Joiner needs to reinitiate call
+                const hostPeerId = `${ID_PREFIX}${roomCode}`;
+                if (callRef.current) callRef.current.close();
+                const newCall = peerRef.current.call(hostPeerId, newStream);
+                if (newCall) {
+                  callRef.current = newCall;
+                  newCall.on('stream', (remoteStream) => {
+                    if (remoteAudioRef.current) {
+                      remoteAudioRef.current.srcObject = remoteStream;
+                      remoteAudioRef.current.play().catch(() => {});
+                    }
+                  });
+                  newCall.on('open', () => console.log('Call reopened after unmute'));
+                  newCall.on('error', (err) => console.error('Call error after unmute:', err));
+                }
+              }
+            }
+            console.log('Audio stream recreated after unmute');
+          } catch (err) {
+            console.error('Failed to recreate audio stream after unmute:', err);
+          }
         }
-      });
+      }
     }
 
     if (myPlayer) {
       sendMessage({ type: 'VOICE_MUTE_TOGGLE', player: myPlayer, muted: newMuted });
     }
-  }, [isMicMuted, isTalking, myPlayer, stopTalking, sendMessage]);
+  }, [isMicMuted, isTalking, myPlayer, stopTalking, sendMessage, isHost, roomCode]);
 
   // Auto-initialize voice chat when connection is established
   useEffect(() => {
