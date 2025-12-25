@@ -34,7 +34,10 @@ export type PeerMessage =
   | { type: 'CHAT'; text: string }
   | { type: 'NUDGE' }
   | { type: 'PING' }
-  | { type: 'PONG' };
+  | { type: 'PONG' }
+  | { type: 'VOICE_TALKING_START'; player: Player }
+  | { type: 'VOICE_TALKING_STOP'; player: Player }
+  | { type: 'VOICE_MUTE_TOGGLE'; player: Player; muted: boolean };
 
 export interface GameContextType {
   gameState: GameState;

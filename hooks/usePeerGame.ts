@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import Peer, { DataConnection, PeerOptions } from 'peerjs';
+import Peer, { DataConnection, MediaConnection, PeerOptions } from 'peerjs';
 import { GameState, ConnectionStatus, Player, PeerMessage, ChatMessage } from '../types';
 import { applyMoveToGameState, getInitialGameState } from '../utils/gameLogic';
 
@@ -33,12 +33,23 @@ export const usePeerGame = () => {
   const [isNudged, setIsNudged] = useState(false);
   const [turnServers, setTurnServers] = useState<RTCIceServer[]>([]);
 
+  // Voice chat state
+  const [isVoiceChatEnabled, setIsVoiceChatEnabled] = useState(false);
+  const [isMicMuted, setIsMicMuted] = useState(false);
+  const [isTalking, setIsTalking] = useState(false);
+  const [opponentTalking, setOpponentTalking] = useState(false);
+
   const peerRef = useRef<Peer | null>(null);
   const connRef = useRef<DataConnection | null>(null);
   const connectionTimeoutRef = useRef<number | null>(null);
   const incomingEmojiTimeoutRef = useRef<number | null>(null);
   const myEmojiTimeoutRef = useRef<number | null>(null);
   const nudgeTimeoutRef = useRef<number | null>(null);
+  
+  // Voice chat refs
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const callRef = useRef<MediaConnection | null>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     connectionStatusRef.current = connectionStatus;
@@ -147,6 +158,17 @@ export const usePeerGame = () => {
       setIsNudged(true);
       if (nudgeTimeoutRef.current) clearTimeout(nudgeTimeoutRef.current);
       nudgeTimeoutRef.current = window.setTimeout(() => setIsNudged(false), 500); 
+    } else if (msg.type === 'VOICE_TALKING_START') {
+      if (msg.player !== myPlayer) {
+        setOpponentTalking(true);
+      }
+    } else if (msg.type === 'VOICE_TALKING_STOP') {
+      if (msg.player !== myPlayer) {
+        setOpponentTalking(false);
+      }
+    } else if (msg.type === 'VOICE_MUTE_TOGGLE') {
+      // This is informational, opponent's mute state doesn't affect our UI directly
+      // but we could use it for future features
     }
   }, [appendChatMessage, createId, myPlayer, opponentName, updateGameLocal]);
 
@@ -155,6 +177,26 @@ export const usePeerGame = () => {
     if (incomingEmojiTimeoutRef.current) clearTimeout(incomingEmojiTimeoutRef.current);
     if (myEmojiTimeoutRef.current) clearTimeout(myEmojiTimeoutRef.current);
     if (nudgeTimeoutRef.current) clearTimeout(nudgeTimeoutRef.current);
+    
+    // Clean up voice chat
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current = null;
+    }
+    
+    if (callRef.current) {
+      try { callRef.current.close(); } catch {}
+      callRef.current = null;
+    }
+    
+    if (remoteAudioRef.current) {
+      if (remoteAudioRef.current.srcObject) {
+        const stream = remoteAudioRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
+      try { document.body.removeChild(remoteAudioRef.current); } catch {}
+      remoteAudioRef.current = null;
+    }
     
     // Close connections first
     if (connRef.current) {
@@ -180,6 +222,12 @@ export const usePeerGame = () => {
     setMyEmoji(null);
     setChatMessages([]);
     setIsNudged(false);
+    
+    // Reset voice chat state
+    setIsVoiceChatEnabled(false);
+    setIsMicMuted(false);
+    setIsTalking(false);
+    setOpponentTalking(false);
   }, []);
 
   // Fetch TURN credentials from our serverless function on mount
@@ -251,6 +299,30 @@ export const usePeerGame = () => {
         // Host is ready to receive connections
         setConnectionStatus('disconnected'); 
         console.log('Host initialized:', fullId);
+      });
+
+      // Set up MediaConnection listener for voice chat
+      peer.on('call', (call) => {
+        callRef.current = call;
+        
+        // If we have a stream, answer immediately, otherwise wait
+        if (mediaStreamRef.current) {
+          call.answer(mediaStreamRef.current);
+        }
+        
+        call.on('stream', (remoteStream) => {
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = remoteStream;
+          }
+        });
+
+        call.on('close', () => {
+          callRef.current = null;
+        });
+
+        call.on('error', (err) => {
+          console.error('MediaConnection error:', err);
+        });
       });
 
       peer.on('connection', (conn) => {
@@ -455,6 +527,129 @@ export const usePeerGame = () => {
     cleanup();
   }, [cleanup]);
 
+  // Initialize voice chat - request mic permission and create MediaStream
+  const initializeVoiceChat = useCallback(async () => {
+    if (isVoiceChatEnabled || !connectionStatus || connectionStatus !== 'connected') {
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 48000
+        }
+      });
+
+      mediaStreamRef.current = stream;
+      setIsVoiceChatEnabled(true);
+
+      // Create hidden audio element for remote audio
+      if (!remoteAudioRef.current) {
+        const audio = document.createElement('audio');
+        audio.autoplay = true;
+        audio.playsInline = true;
+        audio.style.display = 'none';
+        document.body.appendChild(audio);
+        remoteAudioRef.current = audio;
+      }
+
+      // Set up MediaConnection based on role
+      if (!peerRef.current) return;
+
+      // If there's a pending call and we're the host, answer it now
+      if (isHost && callRef.current && !callRef.current.open && mediaStreamRef.current) {
+        callRef.current.answer(stream);
+      } else if (!isHost) {
+        // Joiner initiates call
+        const hostPeerId = `${ID_PREFIX}${roomCode}`;
+        const call = peerRef.current.call(hostPeerId, stream);
+        
+        if (call) {
+          callRef.current = call;
+          
+          call.on('stream', (remoteStream) => {
+            if (remoteAudioRef.current) {
+              remoteAudioRef.current.srcObject = remoteStream;
+            }
+          });
+
+          call.on('close', () => {
+            callRef.current = null;
+          });
+
+          call.on('error', (err) => {
+            console.error('MediaConnection error:', err);
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to initialize voice chat:', err);
+      // Don't set isVoiceChatEnabled to true if permission denied
+    }
+  }, [isVoiceChatEnabled, connectionStatus, isHost, roomCode]);
+
+  // Start talking (push-to-talk button pressed)
+  const startTalking = useCallback(async () => {
+    if (isMicMuted || !myPlayer || connectionStatus !== 'connected') return;
+    
+    // Initialize voice chat if not already done
+    if (!isVoiceChatEnabled || !mediaStreamRef.current) {
+      await initializeVoiceChat();
+      // Wait a bit for initialization
+      if (!mediaStreamRef.current) return;
+    }
+
+    // Enable audio track
+    const audioTracks = mediaStreamRef.current.getAudioTracks();
+    audioTracks.forEach(track => {
+      track.enabled = true;
+    });
+
+    setIsTalking(true);
+    sendMessage({ type: 'VOICE_TALKING_START', player: myPlayer });
+  }, [isVoiceChatEnabled, isMicMuted, myPlayer, connectionStatus, initializeVoiceChat, sendMessage]);
+
+  // Stop talking (push-to-talk button released)
+  const stopTalking = useCallback(() => {
+    if (!isVoiceChatEnabled || !myPlayer) return;
+    if (!mediaStreamRef.current) return;
+
+    // Disable audio track (mute stream without disconnecting)
+    const audioTracks = mediaStreamRef.current.getAudioTracks();
+    audioTracks.forEach(track => {
+      track.enabled = false;
+    });
+
+    setIsTalking(false);
+    sendMessage({ type: 'VOICE_TALKING_STOP', player: myPlayer });
+  }, [isVoiceChatEnabled, myPlayer, sendMessage]);
+
+  // Toggle mic mute
+  const toggleMicMute = useCallback(() => {
+    const newMuted = !isMicMuted;
+    setIsMicMuted(newMuted);
+
+    // If muting while talking, stop talking
+    if (newMuted && isTalking) {
+      stopTalking();
+    }
+
+    if (myPlayer) {
+      sendMessage({ type: 'VOICE_MUTE_TOGGLE', player: myPlayer, muted: newMuted });
+    }
+  }, [isMicMuted, isTalking, myPlayer, stopTalking, sendMessage]);
+
+  // Auto-initialize voice chat when connection is established
+  useEffect(() => {
+    if (connectionStatus === 'connected' && !isVoiceChatEnabled) {
+      // Don't auto-initialize, wait for user to press PTT button
+      // This avoids requesting permission immediately
+    }
+  }, [connectionStatus, isVoiceChatEnabled]);
+
   return {
     gameState,
     connectionStatus,
@@ -476,6 +671,15 @@ export const usePeerGame = () => {
     sendChat,
     sendNudge,
     isNudged,
-    chatMessages
+    chatMessages,
+    // Voice chat
+    isVoiceChatEnabled,
+    isMicMuted,
+    isTalking,
+    opponentTalking,
+    startTalking,
+    stopTalking,
+    toggleMicMute,
+    initializeVoiceChat
   };
 };
