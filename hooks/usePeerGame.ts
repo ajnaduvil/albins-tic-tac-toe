@@ -303,20 +303,30 @@ export const usePeerGame = () => {
 
       // Set up MediaConnection listener for voice chat
       peer.on('call', (call) => {
+        console.log('Incoming call received');
         callRef.current = call;
         
-        // If we have a stream, answer immediately, otherwise wait
+        // If we have a stream, answer immediately
         if (mediaStreamRef.current) {
+          console.log('Answering call with existing stream');
           call.answer(mediaStreamRef.current);
+        } else {
+          console.log('Call received but no stream yet, will answer when stream is ready');
         }
         
         call.on('stream', (remoteStream) => {
+          console.log('Remote stream received');
           if (remoteAudioRef.current) {
             remoteAudioRef.current.srcObject = remoteStream;
+            // Ensure audio plays
+            remoteAudioRef.current.play().catch(err => {
+              console.error('Error playing remote audio:', err);
+            });
           }
         });
 
         call.on('close', () => {
+          console.log('Call closed');
           callRef.current = null;
         });
 
@@ -403,6 +413,40 @@ export const usePeerGame = () => {
       // can be treated as an id string like "[object Object]" and prevent proper connection.
       const peer = new Peer(undefined, getPeerConfig());
       peerRef.current = peer;
+      
+      // Set up MediaConnection listener for voice chat (in case host calls first)
+      peer.on('call', (call) => {
+        console.log('Incoming call received (joiner)');
+        callRef.current = call;
+        
+        // If we have a stream, answer immediately
+        if (mediaStreamRef.current) {
+          console.log('Answering call with existing stream (joiner)');
+          call.answer(mediaStreamRef.current);
+        } else {
+          console.log('Call received but no stream yet, will answer when stream is ready (joiner)');
+        }
+        
+        call.on('stream', (remoteStream) => {
+          console.log('Remote stream received (joiner)');
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = remoteStream;
+            // Ensure audio plays
+            remoteAudioRef.current.play().catch(err => {
+              console.error('Error playing remote audio:', err);
+            });
+          }
+        });
+
+        call.on('close', () => {
+          console.log('Call closed (joiner)');
+          callRef.current = null;
+        });
+
+        call.on('error', (err) => {
+          console.error('MediaConnection error (joiner):', err);
+        });
+      });
       
       // Global connection timeout
       connectionTimeoutRef.current = window.setTimeout(() => {
@@ -544,6 +588,18 @@ export const usePeerGame = () => {
       });
 
       mediaStreamRef.current = stream;
+      console.log('MediaStream created:', { 
+        id: stream.id, 
+        active: stream.active,
+        audioTracks: stream.getAudioTracks().length 
+      });
+      
+      // Ensure audio tracks are enabled by default
+      stream.getAudioTracks().forEach(track => {
+        track.enabled = true;
+        console.log('Audio track:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
+      });
+      
       setIsVoiceChatEnabled(true);
 
       // Create hidden audio element for remote audio
@@ -552,37 +608,63 @@ export const usePeerGame = () => {
         audio.autoplay = true;
         audio.playsInline = true;
         audio.style.display = 'none';
+        audio.volume = 1.0;
         document.body.appendChild(audio);
         remoteAudioRef.current = audio;
+        console.log('Remote audio element created');
       }
 
       // Set up MediaConnection based on role
       if (!peerRef.current) return;
 
       // If there's a pending call and we're the host, answer it now
-      if (isHost && callRef.current && !callRef.current.open && mediaStreamRef.current) {
-        callRef.current.answer(stream);
+      if (isHost && callRef.current) {
+        const callState = callRef.current.open ? 'open' : 'pending';
+        console.log(`Host: Answering ${callState} call with stream`);
+        if (!callRef.current.open) {
+          try {
+            callRef.current.answer(stream);
+            console.log('Host: Call answered successfully');
+          } catch (err) {
+            console.error('Host: Error answering call:', err);
+          }
+        } else {
+          console.log('Host: Call already open');
+        }
       } else if (!isHost) {
         // Joiner initiates call
         const hostPeerId = `${ID_PREFIX}${roomCode}`;
+        console.log('Joiner: Initiating call to', hostPeerId);
         const call = peerRef.current.call(hostPeerId, stream);
         
         if (call) {
           callRef.current = call;
           
           call.on('stream', (remoteStream) => {
+            console.log('Joiner: Remote stream received');
             if (remoteAudioRef.current) {
               remoteAudioRef.current.srcObject = remoteStream;
+              // Ensure audio plays
+              remoteAudioRef.current.play().catch(err => {
+                console.error('Error playing remote audio:', err);
+              });
             }
           });
 
+          call.on('open', () => {
+            console.log('Joiner: Call opened');
+          });
+
           call.on('close', () => {
+            console.log('Joiner: Call closed');
             callRef.current = null;
           });
 
           call.on('error', (err) => {
-            console.error('MediaConnection error:', err);
+            console.error('Joiner: MediaConnection error:', err);
           });
+        } else {
+          console.error('Joiner: Failed to create call');
         }
       }
     } catch (err) {
@@ -604,9 +686,22 @@ export const usePeerGame = () => {
 
     // Enable audio track
     const audioTracks = mediaStreamRef.current.getAudioTracks();
+    console.log('Enabling audio tracks:', audioTracks.length);
     audioTracks.forEach(track => {
+      console.log('Audio track state before:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
       track.enabled = true;
+      console.log('Audio track state after:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
     });
+
+    // Verify call is open
+    if (callRef.current) {
+      console.log('Call state:', { open: callRef.current.open, peer: callRef.current.peer });
+      if (!callRef.current.open) {
+        console.warn('Call is not open!');
+      }
+    } else {
+      console.warn('No call reference when trying to talk - MediaConnection may not be established');
+    }
 
     setIsTalking(true);
     sendMessage({ type: 'VOICE_TALKING_START', player: myPlayer });
