@@ -749,13 +749,14 @@ export const usePeerGame = () => {
       if (!mediaStreamRef.current) return;
     }
 
-    // Enable audio track (resume processing if it was paused by mute)
+    // Enable audio track (resume processing when button is pressed)
     const audioTracks = mediaStreamRef.current.getAudioTracks();
     console.log('Enabling audio tracks:', audioTracks.length);
     audioTracks.forEach(track => {
       if (track.readyState !== 'ended') {
         console.log('Audio track state before:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
-        track.enabled = true;  // Resume CPU processing
+        track.enabled = true;  // Resume CPU processing (echo cancellation, noise suppression, etc.)
+        console.log('Audio track enabled - CPU processing resumed (button pressed)');
         console.log('Audio track state after:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
       }
     });
