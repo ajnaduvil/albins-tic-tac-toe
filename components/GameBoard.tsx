@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, GameState, Player, CellValue } from '../types';
-import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2 } from 'lucide-react';
+import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2, Github } from 'lucide-react';
 import { emojiData } from 'liveemoji/dist/emojiData';
 import clsx from 'clsx';
 import confetti from 'canvas-confetti';
@@ -1334,9 +1334,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Developer Credit */}
       <div className="w-full text-center mt-4 mb-2">
-        <p className="text-xs text-slate-500/70 font-medium">
-          developed by <span className="text-slate-400">ajnaduvil</span>
-        </p>
+        <a
+          href="https://github.com/ajnaduvil"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:text-slate-300 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500/50 text-sm"
+        >
+          <Github className="w-4 h-4" />
+          <span>Developed by ajnaduvil</span>
+        </a>
       </div>
 
     </div>
