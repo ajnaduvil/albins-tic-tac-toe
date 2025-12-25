@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import Peer, { DataConnection, MediaConnection, PeerOptions } from 'peerjs';
+import Peer, { DataConnection, PeerOptions } from 'peerjs';
 import { GameState, ConnectionStatus, Player, PeerMessage, ChatMessage } from '../types';
 import { applyMoveToGameState, getInitialGameState } from '../utils/gameLogic';
 
@@ -33,23 +33,12 @@ export const usePeerGame = () => {
   const [isNudged, setIsNudged] = useState(false);
   const [turnServers, setTurnServers] = useState<RTCIceServer[]>([]);
 
-  // Voice chat state
-  const [isVoiceChatEnabled, setIsVoiceChatEnabled] = useState(false);
-  const [isMicMuted, setIsMicMuted] = useState(false);
-  const [isTalking, setIsTalking] = useState(false);
-  const [opponentTalking, setOpponentTalking] = useState(false);
-
   const peerRef = useRef<Peer | null>(null);
   const connRef = useRef<DataConnection | null>(null);
   const connectionTimeoutRef = useRef<number | null>(null);
   const incomingEmojiTimeoutRef = useRef<number | null>(null);
   const myEmojiTimeoutRef = useRef<number | null>(null);
   const nudgeTimeoutRef = useRef<number | null>(null);
-  
-  // Voice chat refs
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const callRef = useRef<MediaConnection | null>(null);
-  const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     connectionStatusRef.current = connectionStatus;
@@ -158,24 +147,6 @@ export const usePeerGame = () => {
       setIsNudged(true);
       if (nudgeTimeoutRef.current) clearTimeout(nudgeTimeoutRef.current);
       nudgeTimeoutRef.current = window.setTimeout(() => setIsNudged(false), 500); 
-    } else if (msg.type === 'VOICE_TALKING_START') {
-      if (msg.player !== myPlayer) {
-        setOpponentTalking(true);
-      }
-    } else if (msg.type === 'VOICE_TALKING_STOP') {
-      if (msg.player !== myPlayer) {
-        setOpponentTalking(false);
-      }
-    } else if (msg.type === 'VOICE_MUTE_TOGGLE') {
-      // This is informational, opponent's mute state doesn't affect our UI directly
-      // but we could use it for future features
-    } else if (msg.type === 'VOICE_INITIALIZED') {
-      // Opponent has initialized voice chat, if we haven't, we should too
-      // This helps establish the connection faster
-      if (!isVoiceChatEnabled && connectionStatus === 'connected') {
-        console.log('Opponent initialized voice chat, we should too');
-        // Don't auto-initialize (requires permission), but log it
-      }
     }
   }, [appendChatMessage, createId, myPlayer, opponentName, updateGameLocal]);
 
@@ -184,26 +155,6 @@ export const usePeerGame = () => {
     if (incomingEmojiTimeoutRef.current) clearTimeout(incomingEmojiTimeoutRef.current);
     if (myEmojiTimeoutRef.current) clearTimeout(myEmojiTimeoutRef.current);
     if (nudgeTimeoutRef.current) clearTimeout(nudgeTimeoutRef.current);
-    
-    // Clean up voice chat
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      mediaStreamRef.current = null;
-    }
-    
-    if (callRef.current) {
-      try { callRef.current.close(); } catch {}
-      callRef.current = null;
-    }
-    
-    if (remoteAudioRef.current) {
-      if (remoteAudioRef.current.srcObject) {
-        const stream = remoteAudioRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
-      try { document.body.removeChild(remoteAudioRef.current); } catch {}
-      remoteAudioRef.current = null;
-    }
     
     // Close connections first
     if (connRef.current) {
@@ -229,12 +180,6 @@ export const usePeerGame = () => {
     setMyEmoji(null);
     setChatMessages([]);
     setIsNudged(false);
-    
-    // Reset voice chat state
-    setIsVoiceChatEnabled(false);
-    setIsMicMuted(false);
-    setIsTalking(false);
-    setOpponentTalking(false);
   }, []);
 
   // Fetch TURN credentials from our serverless function on mount
@@ -306,59 +251,6 @@ export const usePeerGame = () => {
         // Host is ready to receive connections
         setConnectionStatus('disconnected'); 
         console.log('Host initialized:', fullId);
-      });
-
-      // Set up MediaConnection listener for voice chat
-      peer.on('call', (call) => {
-        console.log('Host: Incoming call received');
-        callRef.current = call;
-        
-        // If we have a stream, answer immediately
-        if (mediaStreamRef.current) {
-          console.log('Host: Answering call with existing stream');
-          try {
-            call.answer(mediaStreamRef.current);
-          } catch (err) {
-            console.error('Host: Error answering call:', err);
-          }
-        } else {
-          console.log('Host: Call received but no stream yet, will answer when stream is ready');
-          // Set up stream handler for when we get the stream
-          call.on('stream', (remoteStream) => {
-            console.log('Host: Remote stream received (before local stream)');
-            if (remoteAudioRef.current) {
-              remoteAudioRef.current.srcObject = remoteStream;
-              remoteAudioRef.current.play().catch(err => {
-                console.error('Error playing remote audio:', err);
-              });
-            }
-          });
-        }
-        
-        // Set up stream handler (will be called when remote stream arrives)
-        call.on('stream', (remoteStream) => {
-          console.log('Host: Remote stream received');
-          if (remoteAudioRef.current) {
-            remoteAudioRef.current.srcObject = remoteStream;
-            // Ensure audio plays
-            remoteAudioRef.current.play().catch(err => {
-              console.error('Error playing remote audio:', err);
-            });
-          }
-        });
-
-        call.on('open', () => {
-          console.log('Host: Call opened');
-        });
-
-        call.on('close', () => {
-          console.log('Host: Call closed');
-          // Don't set to null immediately, might be reconnecting
-        });
-
-        call.on('error', (err) => {
-          console.error('Host: MediaConnection error:', err);
-        });
       });
 
       peer.on('connection', (conn) => {
@@ -439,40 +331,6 @@ export const usePeerGame = () => {
       // can be treated as an id string like "[object Object]" and prevent proper connection.
       const peer = new Peer(undefined, getPeerConfig());
       peerRef.current = peer;
-      
-      // Set up MediaConnection listener for voice chat (in case host calls first)
-      peer.on('call', (call) => {
-        console.log('Incoming call received (joiner)');
-        callRef.current = call;
-        
-        // If we have a stream, answer immediately
-        if (mediaStreamRef.current) {
-          console.log('Answering call with existing stream (joiner)');
-          call.answer(mediaStreamRef.current);
-        } else {
-          console.log('Call received but no stream yet, will answer when stream is ready (joiner)');
-        }
-        
-        call.on('stream', (remoteStream) => {
-          console.log('Remote stream received (joiner)');
-          if (remoteAudioRef.current) {
-            remoteAudioRef.current.srcObject = remoteStream;
-            // Ensure audio plays
-            remoteAudioRef.current.play().catch(err => {
-              console.error('Error playing remote audio:', err);
-            });
-          }
-        });
-
-        call.on('close', () => {
-          console.log('Call closed (joiner)');
-          callRef.current = null;
-        });
-
-        call.on('error', (err) => {
-          console.error('MediaConnection error (joiner):', err);
-        });
-      });
       
       // Global connection timeout
       connectionTimeoutRef.current = window.setTimeout(() => {
@@ -597,318 +455,6 @@ export const usePeerGame = () => {
     cleanup();
   }, [cleanup]);
 
-  // Audio constraints - cached for reuse (avoids recreating object each time)
-  const AUDIO_CONSTRAINTS = {
-    audio: {
-      echoCancellation: true,
-      noiseSuppression: true,
-      autoGainControl: true,
-      sampleRate: 16000  // Lower sample rate for voice chat (saves CPU)
-    }
-  };
-
-  // Initialize voice chat - request mic permission and create MediaStream
-  const initializeVoiceChat = useCallback(async () => {
-    if (isVoiceChatEnabled || !connectionStatus || connectionStatus !== 'connected') {
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
-
-      mediaStreamRef.current = stream;
-      console.log('MediaStream created:', { 
-        id: stream.id, 
-        active: stream.active,
-        audioTracks: stream.getAudioTracks().length 
-      });
-      
-      // Ensure audio tracks are enabled by default
-      stream.getAudioTracks().forEach(track => {
-        track.enabled = true;
-        console.log('Audio track:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
-      });
-      
-      setIsVoiceChatEnabled(true);
-      
-      // Notify opponent that we've initialized voice chat
-      if (myPlayer) {
-        sendMessage({ type: 'VOICE_INITIALIZED', player: myPlayer });
-      }
-
-      // Create hidden audio element for remote audio
-      if (!remoteAudioRef.current) {
-        const audio = document.createElement('audio');
-        audio.autoplay = true;
-        audio.playsInline = true;
-        audio.style.display = 'none';
-        audio.volume = 1.0;
-        document.body.appendChild(audio);
-        remoteAudioRef.current = audio;
-        console.log('Remote audio element created');
-      }
-
-      // Set up MediaConnection based on role
-      if (!peerRef.current) return;
-
-      // If there's a pending call and we're the host, answer it now
-      if (isHost && callRef.current) {
-        const callState = callRef.current.open ? 'open' : 'pending';
-        console.log(`Host: Answering ${callState} call with stream`);
-        if (!callRef.current.open) {
-          try {
-            callRef.current.answer(stream);
-            console.log('Host: Call answered successfully');
-            // Wait a bit and verify the call is open
-            setTimeout(() => {
-              if (callRef.current) {
-                console.log('Host: Call state after answer:', { open: callRef.current.open });
-              }
-            }, 500);
-          } catch (err) {
-            console.error('Host: Error answering call:', err);
-          }
-        } else {
-          console.log('Host: Call already open');
-        }
-      } else if (!isHost) {
-        // Joiner initiates call
-        const hostPeerId = `${ID_PREFIX}${roomCode}`;
-        console.log('Joiner: Initiating call to', hostPeerId);
-        
-        // If there's already a call, close it first
-        if (callRef.current) {
-          try {
-            callRef.current.close();
-          } catch {}
-        }
-        
-        const call = peerRef.current.call(hostPeerId, stream);
-        
-        if (call) {
-          callRef.current = call;
-          
-          call.on('stream', (remoteStream) => {
-            console.log('Joiner: Remote stream received');
-            if (remoteAudioRef.current) {
-              remoteAudioRef.current.srcObject = remoteStream;
-              // Ensure audio plays
-              remoteAudioRef.current.play().catch(err => {
-                console.error('Error playing remote audio:', err);
-              });
-            }
-          });
-
-          call.on('open', () => {
-            console.log('Joiner: Call opened successfully');
-          });
-
-          call.on('close', () => {
-            console.log('Joiner: Call closed');
-            // Don't set to null immediately, might be reconnecting
-          });
-
-          call.on('error', (err) => {
-            console.error('Joiner: MediaConnection error:', err);
-            // Retry call if it fails and we still have a stream
-            if (mediaStreamRef.current && connectionStatus === 'connected') {
-              console.log('Joiner: Retrying call in 1 second...');
-              setTimeout(() => {
-                if (mediaStreamRef.current && peerRef.current && connectionStatus === 'connected') {
-                  const retryCall = peerRef.current.call(hostPeerId, mediaStreamRef.current);
-                  if (retryCall) {
-                    callRef.current = retryCall;
-                    retryCall.on('stream', (remoteStream) => {
-                      if (remoteAudioRef.current) {
-                        remoteAudioRef.current.srcObject = remoteStream;
-                        remoteAudioRef.current.play().catch(() => {});
-                      }
-                    });
-                    retryCall.on('open', () => console.log('Joiner: Retry call opened'));
-                    retryCall.on('error', (err) => console.error('Joiner: Retry call error:', err));
-                  }
-                }
-              }, 1000);
-            }
-          });
-        } else {
-          console.error('Joiner: Failed to create call');
-        }
-      }
-    } catch (err) {
-      console.error('Failed to initialize voice chat:', err);
-      // Don't set isVoiceChatEnabled to true if permission denied
-    }
-  }, [isVoiceChatEnabled, connectionStatus, isHost, roomCode]);
-
-  // Start talking (push-to-talk button pressed)
-  const startTalking = useCallback(async () => {
-    if (isMicMuted || !myPlayer || connectionStatus !== 'connected') return;
-    
-    // Initialize voice chat if not already done
-    if (!isVoiceChatEnabled || !mediaStreamRef.current) {
-      await initializeVoiceChat();
-      // Wait a bit for initialization
-      if (!mediaStreamRef.current) return;
-    }
-
-    // Check if tracks were stopped (e.g., due to mute) and need recreation
-    const audioTracks = mediaStreamRef.current.getAudioTracks();
-    const tracksEnded = audioTracks.every(track => track.readyState === 'ended');
-    
-    if (tracksEnded) {
-      // Tracks were stopped, need to recreate stream
-      console.log('Audio tracks were stopped, recreating stream...');
-      try {
-        const newStream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
-        
-        mediaStreamRef.current = newStream;
-        
-        // Update MediaConnection with new stream if call exists
-        if (callRef.current) {
-          if (isHost && !callRef.current.open) {
-            callRef.current.answer(newStream);
-          } else if (!isHost && peerRef.current) {
-            const hostPeerId = `${ID_PREFIX}${roomCode}`;
-            if (callRef.current) callRef.current.close();
-            const newCall = peerRef.current.call(hostPeerId, newStream);
-            if (newCall) {
-              callRef.current = newCall;
-              newCall.on('stream', (remoteStream) => {
-                if (remoteAudioRef.current) {
-                  remoteAudioRef.current.srcObject = remoteStream;
-                  remoteAudioRef.current.play().catch(() => {});
-                }
-              });
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Failed to recreate audio stream:', err);
-        return;
-      }
-    }
-
-    // Enable audio track (resume processing when button is pressed)
-    const currentTracks = mediaStreamRef.current.getAudioTracks();
-    console.log('Enabling audio tracks:', currentTracks.length);
-    currentTracks.forEach(track => {
-      if (track.readyState !== 'ended') {
-        console.log('Audio track state before:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
-        track.enabled = true;  // Resume CPU processing (echo cancellation, noise suppression, etc.)
-        console.log('Audio track enabled - CPU processing resumed (button pressed)');
-        console.log('Audio track state after:', { enabled: track.enabled, muted: track.muted, readyState: track.readyState });
-      }
-    });
-
-    // Verify call is open
-    if (callRef.current) {
-      console.log('Call state:', { open: callRef.current.open, peer: callRef.current.peer });
-      if (!callRef.current.open) {
-        console.warn('Call is not open!');
-      }
-    } else {
-      console.warn('No call reference when trying to talk - MediaConnection may not be established');
-    }
-
-    setIsTalking(true);
-    sendMessage({ type: 'VOICE_TALKING_START', player: myPlayer });
-  }, [isVoiceChatEnabled, isMicMuted, myPlayer, connectionStatus, initializeVoiceChat, sendMessage]);
-
-  // Stop talking (push-to-talk button released)
-  const stopTalking = useCallback(() => {
-    if (!isVoiceChatEnabled || !myPlayer) return;
-    if (!mediaStreamRef.current) return;
-
-    // Stop audio tracks to release mic indicator and save resources
-    // Since users rarely talk, it's better to fully stop rather than keep active
-    const audioTracks = mediaStreamRef.current.getAudioTracks();
-    audioTracks.forEach(track => {
-      track.stop();  // Stop track to release mic and save CPU/memory
-      console.log('Audio track stopped - mic released, resources freed (button released)');
-    });
-
-    setIsTalking(false);
-    sendMessage({ type: 'VOICE_TALKING_STOP', player: myPlayer });
-  }, [isVoiceChatEnabled, myPlayer, sendMessage]);
-
-  // Toggle mic mute
-  const toggleMicMute = useCallback(async () => {
-    const newMuted = !isMicMuted;
-    setIsMicMuted(newMuted);
-
-    // If muting while talking, stop talking
-    if (newMuted && isTalking) {
-      stopTalking();
-    }
-
-    // Stop track when muted to release mic indicator and save CPU
-    if (mediaStreamRef.current) {
-      const audioTracks = mediaStreamRef.current.getAudioTracks();
-      if (newMuted) {
-        // Stop tracks to release mic indicator and pause processing
-        audioTracks.forEach(track => {
-          track.stop();
-          console.log('Audio track stopped due to mute - mic indicator released, CPU processing paused');
-        });
-      } else {
-        // Unmuted - recreate stream if tracks were stopped
-        if (audioTracks.every(track => track.readyState === 'ended')) {
-          console.log('Recreating audio stream after unmute...');
-          try {
-            const newStream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
-            
-            mediaStreamRef.current = newStream;
-            
-            // Update MediaConnection with new stream if call exists
-            if (callRef.current) {
-              if (isHost && !callRef.current.open) {
-                // Host answering a pending call
-                callRef.current.answer(newStream);
-              } else if (!isHost && peerRef.current) {
-                // Joiner needs to reinitiate call
-                const hostPeerId = `${ID_PREFIX}${roomCode}`;
-                if (callRef.current) callRef.current.close();
-                const newCall = peerRef.current.call(hostPeerId, newStream);
-                if (newCall) {
-                  callRef.current = newCall;
-                  newCall.on('stream', (remoteStream) => {
-                    if (remoteAudioRef.current) {
-                      remoteAudioRef.current.srcObject = remoteStream;
-                      remoteAudioRef.current.play().catch(() => {});
-                    }
-                  });
-                  newCall.on('open', () => console.log('Call reopened after unmute'));
-                  newCall.on('error', (err) => console.error('Call error after unmute:', err));
-                }
-              }
-            }
-            console.log('Audio stream recreated after unmute');
-          } catch (err) {
-            console.error('Failed to recreate audio stream after unmute:', err);
-          }
-        }
-      }
-    }
-
-    if (myPlayer) {
-      sendMessage({ type: 'VOICE_MUTE_TOGGLE', player: myPlayer, muted: newMuted });
-    }
-  }, [isMicMuted, isTalking, myPlayer, stopTalking, sendMessage, isHost, roomCode]);
-
-  // Auto-initialize voice chat when connection is established
-  useEffect(() => {
-    if (connectionStatus === 'connected' && !isVoiceChatEnabled && peerRef.current) {
-      // Auto-initialize voice chat to establish MediaConnection early
-      // This way when users press the button, audio flows immediately
-      console.log('Auto-initializing voice chat...');
-      initializeVoiceChat().catch(err => {
-        console.warn('Auto-initialization of voice chat failed (user may deny permission):', err);
-        // Don't show error to user, they can still press button to retry
-      });
-    }
-  }, [connectionStatus, isVoiceChatEnabled, initializeVoiceChat]);
-
   return {
     gameState,
     connectionStatus,
@@ -930,15 +476,6 @@ export const usePeerGame = () => {
     sendChat,
     sendNudge,
     isNudged,
-    chatMessages,
-    // Voice chat
-    isVoiceChatEnabled,
-    isMicMuted,
-    isTalking,
-    opponentTalking,
-    startTalking,
-    stopTalking,
-    toggleMicMute,
-    initializeVoiceChat
+    chatMessages
   };
 };

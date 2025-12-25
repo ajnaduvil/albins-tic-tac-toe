@@ -32,14 +32,7 @@ const App: React.FC = () => {
     sendNudge,
     isNudged,
     sendChat,
-    chatMessages,
-    isVoiceChatEnabled,
-    isMicMuted,
-    isTalking,
-    opponentTalking,
-    startTalking,
-    stopTalking,
-    toggleMicMute
+    chatMessages
   } = usePeerGame();
 
   const ai = useAIGame();
@@ -224,13 +217,6 @@ const App: React.FC = () => {
             isNudged={isNudged}
             onSendChat={sendChat}
             chatMessages={chatMessages}
-            isVoiceChatEnabled={isVoiceChatEnabled}
-            isMicMuted={isMicMuted}
-            isTalking={isTalking}
-            opponentTalking={opponentTalking}
-            onStartTalking={startTalking}
-            onStopTalking={stopTalking}
-            onToggleMicMute={toggleMicMute}
           />
         ) : isWaitingForOpponent ? (
           <div className="flex flex-col items-center gap-6 p-8 bg-slate-950/45 backdrop-blur-xl rounded-2xl border border-white/10 ring-1 ring-white/5 max-w-sm w-full text-center shadow-2xl">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, GameState, Player, CellValue } from '../types';
-import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2, Github, Mic, MicOff } from 'lucide-react';
+import { X, Circle, RefreshCw, Copy, LogOut, Trophy, BellRing, MessageSquare, Send, Plus, Trash2, Github } from 'lucide-react';
 import { emojiData } from 'liveemoji/dist/emojiData';
 import clsx from 'clsx';
 import confetti from 'canvas-confetti';
@@ -23,14 +23,6 @@ interface GameBoardProps {
   isNudged: boolean;
   chatMessages: ChatMessage[];
   onSendChat: (text: string) => void;
-  // Voice chat props
-  isVoiceChatEnabled: boolean;
-  isMicMuted: boolean;
-  isTalking: boolean;
-  opponentTalking: boolean;
-  onStartTalking: () => void;
-  onStopTalking: () => void;
-  onToggleMicMute: () => void;
 }
 
 const EMOJIS = ['😂', '😎', '😡', '😭', '😏', '🖕', '😉', '🍌', '👌'];
@@ -93,14 +85,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   onSendNudge,
   isNudged,
   chatMessages,
-  onSendChat,
-  isVoiceChatEnabled,
-  isMicMuted,
-  isTalking,
-  opponentTalking,
-  onStartTalking,
-  onStopTalking,
-  onToggleMicMute
+  onSendChat
 }) => {
   const { board, currentPlayer, status, winner, winningLine, gridSize, winCondition } = gameState;
   const isMyTurn = status === 'playing' && currentPlayer === myPlayer;
@@ -573,7 +558,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     return `${opponentName}'s Turn`;
   };
 
-  const PlayerBadge = ({ player, name, score, isMe, emoji, message, isTalking }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null, message?: string | null, isTalking?: boolean }) => {
+  const PlayerBadge = ({ player, name, score, isMe, emoji, message }: { player: Player, name: string, score: number, isMe: boolean, emoji: string | null, message?: string | null }) => {
     const isCurrentPlayerTurn = currentPlayer === player && status === 'playing';
     const isWinner = status === 'winner' && winner === player;
     const badgeRef = useRef<HTMLDivElement>(null);
@@ -773,36 +758,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
            {isMe ? 'YOU' : 'OPPONENT'} 
            {winner === player && <Trophy className="w-3 h-3 text-amber-400" />}
-           {isTalking && (
-             <div className={clsx(
-               "ml-1 relative w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center",
-               "shadow-lg",
-               player === 'X'
-                 ? "bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600"
-                 : "bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600"
-             )}>
-               {/* Pulsing ring effect */}
-               <div className={clsx(
-                 "absolute inset-0 rounded-full animate-ping opacity-75",
-                 player === 'X'
-                   ? "bg-indigo-400"
-                   : "bg-emerald-400"
-               )} style={{ animationDuration: '1.5s' }} />
-               {/* Outer glow ring */}
-               <div className={clsx(
-                 "absolute -inset-0.5 rounded-full opacity-60 animate-pulse",
-                 player === 'X'
-                   ? "bg-indigo-400/40"
-                   : "bg-emerald-400/40"
-               )} style={{ animationDuration: '2s' }} />
-               {/* Inner icon */}
-               <Mic className={clsx(
-                 "relative z-10 w-2 h-2 sm:w-2.5 sm:h-2.5 drop-shadow-lg",
-                 "animate-[mic-bounce_1s_ease-in-out_infinite]",
-                 player === 'X' ? "text-indigo-50" : "text-emerald-50"
-               )} />
-             </div>
-           )}
          </span>
          <span className="text-xs sm:text-sm font-semibold text-white truncate">{name}</span>
       </div>
@@ -858,19 +813,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Goal</span>
                  <span className="text-xs font-bold text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">{winCondition} in a row</span>
             </div>
-            <button
-              onClick={onToggleMicMute}
-              className={clsx(
-                "p-2 rounded-lg transition-colors border border-white/10",
-                isMicMuted
-                  ? "bg-red-500/15 text-red-400 hover:bg-red-500/20 hover:text-red-300"
-                  : "bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white"
-              )}
-              title={isMicMuted ? "Unmute microphone" : "Mute microphone"}
-              aria-label={isMicMuted ? "Unmute microphone" : "Mute microphone"}
-            >
-              {isMicMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            </button>
             <a 
               href="https://github.com/ajnaduvil/albins-tic-tac-toe" 
               target="_blank" 
@@ -896,7 +838,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             isMe={myPlayer === 'X'} 
             emoji={myPlayer === 'X' ? myEmoji : incomingEmoji}
             message={lastBubble.X}
-            isTalking={myPlayer === 'X' ? isTalking : opponentTalking}
          />
          <div className="hidden sm:block text-slate-600 font-bold text-lg shrink-0">VS</div>
          <PlayerBadge 
@@ -906,7 +847,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             isMe={myPlayer === 'O'} 
             emoji={myPlayer === 'O' ? myEmoji : incomingEmoji}
             message={lastBubble.O}
-            isTalking={myPlayer === 'O' ? isTalking : opponentTalking}
          />
       </div>
 
@@ -1187,51 +1127,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 </button>
             ))}
         </div>
-      </div>
-
-      {/* Push-to-Talk Button */}
-      <div className="w-full flex justify-center mb-16 sm:mb-0">
-        <button
-          onMouseDown={(e) => {
-            e.preventDefault();
-            onStartTalking();
-          }}
-          onMouseUp={(e) => {
-            e.preventDefault();
-            onStopTalking();
-          }}
-          onMouseLeave={(e) => {
-            e.preventDefault();
-            onStopTalking();
-          }}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            onStartTalking();
-          }}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            onStopTalking();
-          }}
-          disabled={isMicMuted}
-          className={clsx(
-            "w-16 h-16 sm:w-20 sm:h-20 rounded-full font-bold text-sm sm:text-base transition-all duration-200",
-            "border-2 shadow-xl ring-1 flex items-center justify-center",
-            isMicMuted
-              ? "bg-slate-800/50 text-slate-500 border-slate-700 cursor-not-allowed"
-              : isTalking
-              ? "bg-gradient-to-br from-emerald-500 via-green-500 to-emerald-600 text-white border-emerald-400 shadow-emerald-500/30 animate-pulse scale-110"
-              : "bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 text-slate-300 border-slate-500 hover:from-slate-600 hover:via-slate-500 hover:to-slate-600 hover:scale-105 active:scale-95"
-          )}
-          title={isMicMuted ? "Mic Muted" : isTalking ? "Talking..." : "Hold to Talk"}
-        >
-          {isMicMuted ? (
-            <MicOff className="w-6 h-6 sm:w-8 sm:h-8" />
-          ) : isTalking ? (
-            <Mic className="w-6 h-6 sm:w-8 sm:h-8" />
-          ) : (
-            <Mic className="w-6 h-6 sm:w-8 sm:h-8" />
-          )}
-        </button>
       </div>
 
       {/* Game Over Actions */}
