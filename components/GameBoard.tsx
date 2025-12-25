@@ -775,15 +775,31 @@ export const GameBoard: React.FC<GameBoardProps> = ({
            {winner === player && <Trophy className="w-3 h-3 text-amber-400" />}
            {isTalking && (
              <div className={clsx(
-               "ml-1 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full flex items-center justify-center",
-               "bg-gradient-to-br shadow-md animate-pulse",
+               "ml-1 relative w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center",
+               "shadow-lg",
                player === 'X'
-                 ? "from-indigo-500 to-purple-600 border border-indigo-300/80"
-                 : "from-emerald-500 to-teal-600 border border-emerald-300/80"
+                 ? "bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600"
+                 : "bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600"
              )}>
+               {/* Pulsing ring effect */}
+               <div className={clsx(
+                 "absolute inset-0 rounded-full animate-ping opacity-75",
+                 player === 'X'
+                   ? "bg-indigo-400"
+                   : "bg-emerald-400"
+               )} style={{ animationDuration: '1.5s' }} />
+               {/* Outer glow ring */}
+               <div className={clsx(
+                 "absolute -inset-0.5 rounded-full opacity-60 animate-pulse",
+                 player === 'X'
+                   ? "bg-indigo-400/40"
+                   : "bg-emerald-400/40"
+               )} style={{ animationDuration: '2s' }} />
+               {/* Inner icon */}
                <Mic className={clsx(
-                 "w-1.5 h-1.5 sm:w-2 sm:h-2",
-                 player === 'X' ? "text-indigo-100" : "text-emerald-100"
+                 "relative z-10 w-2 h-2 sm:w-2.5 sm:h-2.5 drop-shadow-lg",
+                 "animate-[mic-bounce_1s_ease-in-out_infinite]",
+                 player === 'X' ? "text-indigo-50" : "text-emerald-50"
                )} />
              </div>
            )}

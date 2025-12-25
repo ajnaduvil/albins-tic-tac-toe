@@ -103,6 +103,15 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  @keyframes mic-bounce {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-2px) scale(1.1);
+    }
+  }
+
   .animate-fade-in,
   .animate-scale-in,
   .app-shell::before,
