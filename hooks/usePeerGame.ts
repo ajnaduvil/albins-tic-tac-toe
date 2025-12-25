@@ -804,11 +804,16 @@ export const usePeerGame = () => {
 
   // Auto-initialize voice chat when connection is established
   useEffect(() => {
-    if (connectionStatus === 'connected' && !isVoiceChatEnabled) {
-      // Don't auto-initialize, wait for user to press PTT button
-      // This avoids requesting permission immediately
+    if (connectionStatus === 'connected' && !isVoiceChatEnabled && peerRef.current) {
+      // Auto-initialize voice chat to establish MediaConnection early
+      // This way when users press the button, audio flows immediately
+      console.log('Auto-initializing voice chat...');
+      initializeVoiceChat().catch(err => {
+        console.warn('Auto-initialization of voice chat failed (user may deny permission):', err);
+        // Don't show error to user, they can still press button to retry
+      });
     }
-  }, [connectionStatus, isVoiceChatEnabled]);
+  }, [connectionStatus, isVoiceChatEnabled, initializeVoiceChat]);
 
   return {
     gameState,
