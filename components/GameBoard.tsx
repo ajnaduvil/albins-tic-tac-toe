@@ -768,26 +768,25 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             isCurrentPlayerTurn ? "text-emerald-200 scale-110" : "text-emerald-400"
           )} strokeWidth={2.5} />
         )}
-        {/* Microphone indicator when talking */}
-        {isTalking && (
-          <div className={clsx(
-            "absolute -top-1 -right-1 z-20 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center",
-            "bg-gradient-to-br shadow-lg animate-pulse",
-            player === 'X'
-              ? "from-indigo-500 to-purple-600 border-2 border-indigo-300"
-              : "from-emerald-500 to-teal-600 border-2 border-emerald-300"
-          )}>
-            <Mic className={clsx(
-              "w-2.5 h-2.5 sm:w-3 sm:h-3",
-              player === 'X' ? "text-indigo-100" : "text-emerald-100"
-            )} />
-          </div>
-        )}
       </div>
       <div className="flex flex-col min-w-0">
          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
            {isMe ? 'YOU' : 'OPPONENT'} 
            {winner === player && <Trophy className="w-3 h-3 text-amber-400" />}
+           {isTalking && (
+             <div className={clsx(
+               "ml-1 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full flex items-center justify-center",
+               "bg-gradient-to-br shadow-md animate-pulse",
+               player === 'X'
+                 ? "from-indigo-500 to-purple-600 border border-indigo-300/80"
+                 : "from-emerald-500 to-teal-600 border border-emerald-300/80"
+             )}>
+               <Mic className={clsx(
+                 "w-1.5 h-1.5 sm:w-2 sm:h-2",
+                 player === 'X' ? "text-indigo-100" : "text-emerald-100"
+               )} />
+             </div>
+           )}
          </span>
          <span className="text-xs sm:text-sm font-semibold text-white truncate">{name}</span>
       </div>
